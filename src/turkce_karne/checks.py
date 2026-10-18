@@ -519,6 +519,10 @@ def _check_spelling_rules(spec: dict, resp: str, ctx) -> CheckResult:
                            time adverbial ("evde ki", "bugün ki").
       - ``compound_traps``: canonical fused-form misspellings ("herşey",
                            "yanlız", "yada", "dahada"...).
+      - ``de_da_harmony``: separated clitic with the wrong vowel for the
+                           preceding word ("ben da", "okul de"); attached
+                           "…de/da" stays out of scope (locative vs clitic
+                           needs morphology).
 
     ``allow:`` lists extra tokens/stems to skip (proper nouns, jargon).
     ``max_violations`` tolerates N hits (default 0). Partial credit:

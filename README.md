@@ -29,12 +29,15 @@ karne run --model $KARNE_MODEL --html # run all tasks, write JSON + HTML
 karne report results/karne-*.json --out scorecard.html
 ```
 
+Or run without installing: `uvx --from . karne validate` (pipx equivalent:
+`pipx run --spec . karne validate`).
+
 Outputs land in `results/` (JSON per run) plus a static HTML scorecard with
 per-task expandable responses.
 
 ## What gets tested
 
-72 original tasks (dataset v1, CC-BY-4.0) across 8 categories:
+73 original tasks (dataset v1, CC-BY-4.0) across 8 categories:
 
 | Category      | What it measures                                   |
 |---------------|----------------------------------------------------|
@@ -56,10 +59,12 @@ for `json_fields`, `turkish_share`, `written_form`, `spelling_rules`).
 `spelling_rules` scans the response for unambiguous TDK violations:
 the question particle glued to a word (`geliyormusun`), wrong question-
 particle vowel (`akşam mi`), separated `-ki` after locatives/time words
-(`bugün ki`), and canonical fused-form errors (`herşey`, `yanlız`,
-`yada`). Morphology is not modeled — the check only fires on cases with
-no legal reading, and task specs can subset rules, `allow` stems, or
-tolerate `max_violations`.
+(`bugün ki`), canonical fused-form errors (`herşey`, `yanlız`, `yada`),
+and the separated `de/da` clitic with the wrong vowel for the preceding
+word (`ben da`, `okul de`). Morphology is not modeled — attached
+`…de/da` (locative vs clitic) stays out of scope, and the check only
+fires on cases with no legal reading. Task specs can subset rules,
+`allow` stems, or tolerate `max_violations`.
 
 Optionally, a second model can act as a judge on the free-text
 categories (`--judge-model`), adding a fixed-rubric score that blends
@@ -103,6 +108,7 @@ karne report a.json b.json --out compare.html   # multi-model scorecard
 karne report a.json --format md                 # Markdown table (stdout or --out)
 karne compare a.json b.json [--json] [--checks]  # paired diff + flips + delta CI
 karne compare base.json b.json c.json           # N runs: all vs first file
+karne compare a.json b.json c.json --best       # baseline = top-scoring run
 ```
 
 Useful flags: `--dry-run` prints the selection plus a rough token/cost
@@ -156,7 +162,8 @@ With 3+ files (`karne compare base.json b.json c.json ...`), every run is
 compared against the first file (the baseline): output starts with a
 leaderboard (paired mean score over tasks shared with the baseline,
 delta vs A, McNemar p) followed by the full per-pair reports; `--json`
-returns `{baseline, leaderboard, comparisons}`.
+returns `{baseline, leaderboard, comparisons}`. `--best` picks the
+highest-scoring file as the baseline instead of the first file.
 
 The scorecard also breaks scores down by check type: every run's
 summary carries `by_check_type` (check-level mean — pass=1.0,
@@ -186,7 +193,7 @@ with `python3 scripts/gen_ocr_tasks.py`). Schema per item:
 
 Run `karne validate` after editing; it checks ids, schema, and that every
 check type exists with its required params. All text is original —
-contributions welcome under CC-BY-4.0.
+contributions welcome under CC-BY-4.0 (see `CONTRIBUTING.md`).
 
 ## Limits
 
@@ -199,7 +206,12 @@ contributions welcome under CC-BY-4.0.
   check and are listed in `detail.extra`).
 - Turkish morphology isn't modeled — de/da/ki correctness is tested via
   authored tasks, `written_form`, and the high-precision `spelling_rules`
-  scans (unambiguous cases only); a general grammar check stays out of scope.
+  scans (unambiguous cases only); a general grammar check stays out of
+  scope.
+- `count` checks count words/lines/chars, not tokens — a model's BPE
+  tokenizer splits agglutinated Turkish far more aggressively than a
+  space-based word count suggests, so translate our limits to token
+  budgets generously.
 
 
 ## Development

@@ -392,3 +392,30 @@ def test_spelling_rules_bad_rule_name():
         pass
     else:
         raise AssertionError("expected CheckSpecError")
+
+
+
+
+def test_spelling_de_da_harmony():
+    # separated clitic must follow the last vowel of the preceding word
+    r = chk("spelling_rules", "Ben da geldim, okul de güzel.")
+    assert not r.passed and len(r.detail["violations"]) == 2
+    r2 = chk("spelling_rules", "Ben de geldim, okul da güzel.")
+    assert r2.passed
+
+
+def test_spelling_de_da_skips_loans_and_foreign():
+    # loan stems whose written back vowel takes front suffixes are legal,
+    # and foreign fixed phrases ("Rio de Janeiro") are not the clitic
+    r = chk(
+        "spelling_rules",
+        "Saat de on ikiydi; normal de gelmedi. Rio de Janeiro büyüktür.",
+    )
+    assert r.passed
+
+
+def test_spelling_de_da_skips_circumflex_and_short():
+    # â/î/û harmony is lexical ("kâr da" vs "kâğıt de") — never flagged;
+    # very short stems ("O da", "De ki") carry no reliable signal
+    r = chk("spelling_rules", "Kâr da zarar da oldu. O da geldi. De ki gel.")
+    assert r.passed

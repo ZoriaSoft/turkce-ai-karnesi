@@ -1,16 +1,16 @@
 # Memory — turkce-ai-karnesi
 
-## State (after round 7, 2026-10-18)
-- 8 rounds planned; 7 done. Suite green on sandbox: 163 tests.
-- New: `summary.by_check_type` + "Check types" table in HTML/MD
-  scorecards (worst-first, per-run columns; sparse-JSON fallback);
-  `karne compare` takes N files (baseline = file 1, leaderboard +
-  per-pair reports via `compare_many`/`format_multi`); OCR corpus
-  8 → 11 templates (kira sözleşmesi, kargo etiketi, lab sonucu) —
-  dataset 69 → 72 tasks.
-- Next candidates (ROADMAP): `uv`/`pipx` quickstart check, tokenizer-
-  aware length note, compare `--best` auto-baseline, CONTRIBUTING note,
-  de/da morphology subset (still risky).
+## State (after round 8, 2026-10-18)
+- 8/8 rounds done. Suite green on sandbox: 167 tests.
+- Round 8: `de_da_harmony` scan (separated clitic vowel harmony —
+  "ben da"/"okul de" flagged; attached locative stays out, loan stems
+  "saat de", â/î/û stems and foreign "X de" phrases skipped);
+  registered in SCANNERS as fifth default rule. `karne compare --best`
+  = top-scoring file becomes baseline. `imla/de-da-uyum` → 73 tasks.
+  CONTRIBUTING.md written; README limits note (count = words/chars,
+  not BPE tokens); `uvx --from . karne validate` verified clean-env.
+- All planned candidates shipped or deferred; repo is release-ready
+  pending owner's public decision + name choice.
 
 ## Environment
 - Tests/builds ONLY on sandbox: `cirak-run "python3 -m venv .venv &&

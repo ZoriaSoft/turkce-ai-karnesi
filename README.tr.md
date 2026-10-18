@@ -3,7 +3,7 @@
 Türkçe'de gerçekten iş gören LLM'leri ölçen bir değerlendirme kiti — özellikle
 insanların fiilen kullandığı ucuz/ücretsiz modeller için.
 
-72 özgün görev (veri seti v1, CC-BY-4.0) 8 kategoride: resmi yazı/dilekçe,
+73 özgün görev (veri seti v1, CC-BY-4.0) 8 kategoride: resmi yazı/dilekçe,
 e-posta, özet, dağınık belgeden alan çıkartımı (fatura/tutanak — 11'i tohumlu
 OCR gürültüsüyle üretilmiş), imla kuralları (de/da, ki, soru eki), yönerge
 takibi, TR↔EN çeviri, akıl yürütme.
@@ -45,5 +45,6 @@ Kontrol türü kırılımı da görünür: koşu özetinde `by_check_type` (kont
 bazında ortalama puan + başarısız sayısı) tutulur ve HTML/Markdown
 karnesinde "en çok hangi kontrol türü düşüyor" tablosu en kötü önde
 olacak şekilde gösterilir.
+`--best` verilirse dosya sırası yerine en yüksek puanlı koşu taban olur.
 
 Detaylar ve veri seti şeması için: [`README.md`](README.md)

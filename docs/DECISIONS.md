@@ -108,3 +108,16 @@ drift for a display-only quantity) or be forgotten. Data-derived seeding
 keeps intervals byte-reproducible and removes a decision users should
 never have to make. Trade-off accepted: percentile method at small n
 understates uncertainty — documented, not hidden.
+
+## D17 — de/da clitic rule covers vowel harmony only
+"Xde/Yda" (attached) is unresolvable without morphology — "arabada" is a
+legal locative, "arabada" as clitic is wrong — so `de_da_harmony` scans
+only the *separated* clitic: "de/da" must still agree with the last
+vowel of the preceding word, and a mismatch is always an error
+("ben da", "okul de"). Two skip classes keep precision perfect: Arabic/
+Persian loan stems whose written back vowel takes front suffixes
+("saat de", "normal de" — fetha and palatal-l groups, TDK's own
+exception lists), and foreign fixed phrases ("Rio de Janeiro"). Â/î/û
+stems are skipped outright (their harmony is lexical: "kâr da" vs
+"kâğıt de"). Wrong direction never occurs: a clean response cannot trip
+this rule.

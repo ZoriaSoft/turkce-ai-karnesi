@@ -186,3 +186,30 @@ Format loosely follows Keep a Changelog; versions are dataset/tool aware.
 ### Changed
 - `karne compare` positional args are now `files...` instead of `a b`;
   single file exits 2 with a usage error.
+
+## [Unreleased] — round 8 (2026-10-18)
+
+### Added
+- `spelling_rules` gains a fifth scan, `de_da_harmony`: the separated
+  de/da clitic must harmonize with the last vowel of the preceding word
+  ("ben da", "okul de" are flagged). High-precision only — attached
+  "…de/da" stays out of scope (locative vs clitic needs morphology),
+  front-vowel loan stems ("saat de", "normal de"), â/î/û stems and
+  foreign fixed phrases ("Rio de Janeiro") are skipped. Enabled by
+  default like the other four rules.
+- `karne compare --best`: picks the highest-scoring results file as the
+  comparison baseline instead of the first positional arg. Works for
+  both the 2-file and the leaderboard (>2 files) modes.
+- Dataset v1: `imla/de-da-uyum` — fix wrong-vowel de/da clitics across
+  three sentences (written_form + spelling_rules + line count); 72 →
+  73 items.
+- `CONTRIBUTING.md`: dataset conventions (original text, stable ids,
+  `_`-sidecars, generated OCR file), check-authoring rules and the dev
+  loop.
+- README: `uvx --from . karne validate` quickstart verified on a clean
+  env; "Limits" notes that `count` measures words/chars, not tokens
+  (Turkish agglutination inflates BPE token counts far beyond word
+  counts).
+
+### Changed
+- `README.tr.md` updated: 73 tasks, `--best`.

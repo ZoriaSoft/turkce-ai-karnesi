@@ -108,6 +108,9 @@ def build_parser() -> argparse.ArgumentParser:
                     help="print machine-readable JSON to stdout")
     cp.add_argument("--checks", action="store_true",
                     help="also report per-check verdict flips")
+    cp.add_argument("--best", action="store_true",
+                    help="use the highest-scoring run as the baseline "
+                         "instead of the first file")
 
     return p
 
@@ -309,6 +312,11 @@ def cmd_compare(args) -> int:
         print("compare: need at least 2 results files", file=sys.stderr)
         return 2
     runs = [load_results(p) for p in args.files]
+    if args.best:
+        runs.sort(
+            key=lambda r: r.get("summary", {}).get("score") or -1.0,
+            reverse=True,
+        )
     if len(runs) == 2:
         rep = compare_runs(runs[0], runs[1], include_checks=args.checks)
         print(

@@ -147,3 +147,25 @@ items:
     notes: >-
       Soru eki ayrı yazımı + -ki eki (yarınki zaten doğru kalmalı).
       'evde mi' hem ek uyumu hem ayrı yazım testi.
+
+
+  - id: imla/de-da-uyum
+    category: imla
+    difficulty: 2
+    prompt: >-
+      Aşağıdaki cümlelerdeki ayrı yazılan de/da bağlacının ünlü uyumu
+      hatalarını düzelt ve yalnızca düzeltilmiş cümleleri yaz; her cümle
+      kendi satırında olsun.
+      "Kardeşim da geldi. Ben da yoruldum. Okul de yakınmış."
+    checks:
+      - type: written_form
+        correct: ["kardeşim de", "ben de", "okul da"]
+        incorrect: ["kardeşim da", "ben da", "okul de"]
+      - type: spelling_rules
+      - type: count
+        unit: lines
+        eq: 3
+    notes: >-
+      The de/da clitic vowel must harmonize with the last vowel of the
+      preceding word; spelling_rules' de_da_harmony scan fails any output
+      that keeps a wrong vowel, so partial fixes lose partial credit.

@@ -3,8 +3,8 @@
 Every rule here is high-precision by design: it only fires on cases that
 are unambiguous errors under TDK conventions, so a clean response never
 loses points to a heuristic false positive. Turkish morphology is *not*
-modeled — ambiguous cases (generic "de/da" clitic-vs-suffix on arbitrary
-words, suffix vowel harmony) are deliberately out of scope.
+modeled — the attached suffix side of de/da (locative vs clitic) is
+deliberately out of scope; the separated clitic's vowel harmony is not.
 
 Each scanner takes the raw response plus an ``allow`` set of extra stems
 the task author wants to exclude, and returns short human-readable
@@ -241,6 +241,100 @@ def scan_compound_traps(text: str, allow: set[str] | None = None) -> list[str]:
     return out
 
 
+
+
+# ---------------------------------------------------------------------------
+# rule 5: separated "de/da" clitic vowel harmony
+#
+# The clitic "de/da" (also/too) is always a separate word, but its vowel
+# still harmonizes with the LAST vowel of the preceding word:
+#   e/i/ö/ü -> de,   a/ı/o/u -> da
+# ("ben de", "okul da"). Front->back has no exceptions: "ben da" is always
+# wrong. Back->front has one lexical exception class — Arabic/Persian loan
+# stems whose written back vowel takes a front-vowel suffix anyway (fetha
+# "saat de", palatal final-l "normal de"); those stems are skipped via
+# _DEDA_FRONT_LOANS, and stems containing â/î/û are skipped outright
+# (their harmony is lexical: "kâr da" but "kâğıt de"). Attached "de/da"
+# stays out of scope — there it may be a legal locative suffix, which
+# needs morphology to disambiguate.
+_DEDA_PARTICLE = {"de", "da"}
+_DEDA_FRONT_VOWELS = set("eiöü")
+_DEDA_VOWELS = _DEDA_FRONT_VOWELS | set("aıou")
+
+# stems where "X de" is a legal foreign fixed phrase, not the clitic:
+# "Rio de Janeiro", "Tour de France", "nom de plume", "coup de grâce",
+# "pas de deux", "point de vue", "fin de semana"... — flagging the
+# French/Spanish/Portuguese "de" is always wrong.
+_DEDA_STEM_SKIP = {
+    "rio", "tour", "nom", "pas", "coup", "fin", "hors", "point", "pot",
+    "jeu", "fleur", "cinco", "costa", "boca", "copa", "dia", "sangre",
+    "corazon",
+}
+
+# back-vowel loan stems that nevertheless take "de" — skipped entirely:
+# flagging "saat de" is worse than missing "saat da".
+_DEDA_FRONT_LOANS = {
+    # fetha: written short a, front realisation (TDK exception list)
+    "saat", "sanat", "hakikat", "hikayet", "hidayet", "itaat", "şeriat",
+    "zikat", "kudret", "hükümet", "hürmet", "haysiyet", "kanaat",
+    "nihayet", "rağbet", "istikbal", "ihtimal",
+    # -harf group: kalp -> kalpte
+    "kalp", "harf",
+    # palatal final l (written back vowel, front suffix)
+    "hayal", "alkol", "kontrol", "normal", "lokal", "global", "sosyal",
+    "sanal", "dijital", "final", "metal", "terminal", "ideal", "real",
+    "reel", "usul", "meşgul", "kabul", "makbul", "mesul", "resul", "rol",
+    "sol", "gol", "moral", "sinyal", "festival", "kristal", "total",
+    "viral", "futbol", "hilal", "kemal", "cemal", "vebal", "misal",
+    "emsal", "makul", "petrol", "kolesterol", "şevval", "mahal", "hal",
+}
+
+
+def _deda_stem_ok(stem: str) -> bool:
+    """Decide whether de/da harmony applies to this stem."""
+    if not stem or stem in _DEDA_FRONT_LOANS or stem in _DEDA_STEM_SKIP:
+        return False
+    # â/î/û stems have lexical harmony (kâr da vs kâğıt de) — skip
+    if any(c in stem for c in "âîû"):
+        return False
+    if stem in TURKISH_WORDS:
+        return True
+    if any(c in stem for c in "çğıöşü"):
+        return True
+    # pure-ASCII: reject obvious Latin/foreign stems, accept the rest
+    if re.search(r"[qwxj]", stem):
+        return False
+    return len(stem) >= 3
+
+
+def scan_de_da_harmony(text: str, allow: set[str] | None = None) -> list[str]:
+    out = []
+    toks = _TOK_RE.findall(text)
+    prev: str | None = None
+    for tok in toks:
+        tl = norm_text(tok)
+        if tl in _DEDA_PARTICLE and prev is not None:
+            stem = norm_text(prev.rstrip("'"))
+            if allow and stem in allow:
+                prev = None
+                continue
+            if _deda_stem_ok(stem):
+                vowels = [c for c in stem if c in _DEDA_VOWELS]
+                if vowels:
+                    want = (
+                        "de" if vowels[-1] in _DEDA_FRONT_VOWELS else "da"
+                    )
+                    if want != tl:
+                        out.append(
+                            f"clitic 'de/da' harmony: '{prev} {tok}' "
+                            f"should be '{want}'"
+                        )
+            prev = None
+            continue
+        prev = tok
+    return out
+
+
 # ---------------------------------------------------------------------------
 # registry — used by the ``spelling_rules`` check. Rule names are stable;
 # a spec may subset them via ``rules: [...]``.
@@ -249,4 +343,5 @@ SCANNERS = {
     "mi_harmony": scan_mi_harmony,
     "ki_separate": scan_ki_separate,
     "compound_traps": scan_compound_traps,
+    "de_da_harmony": scan_de_da_harmony,
 }

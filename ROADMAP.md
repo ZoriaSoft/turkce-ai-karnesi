@@ -107,16 +107,28 @@ repo/directory/remote keep the current name until then.
 - [x] OCR templates +3: kira sözleşmesi, kargo etiketi, laboratuvar
       sonucu (reference-range distractors) — 69 → 72 tasks.
 
-## Round 8 candidates
-- [ ] de/da clitic-vs-suffix: still needs morphology; revisit only with
-      a high-precision subset (e.g. after personal pronouns).
-- [ ] `uv run` / `pipx` quickstart verification on a clean env.
-- [ ] Turkish tokenizer-aware length checks (BPE vs word discrepancy note).
+## Round 8 (done)
+- [x] `spelling_rules` fifth scan `de_da_harmony`: separated de/da
+      clitic vowel harmony ("ben da"→de, "okul de"→da); attached forms
+      stay out of scope, loan stems (fetha / palatal-l), â/î/û stems
+      and foreign fixed phrases skipped. Registered by default.
+- [x] `karne compare --best`: highest-scoring file becomes the baseline
+      (2-file and leaderboard modes).
+- [x] `imla/de-da-uyum` task; dataset 72 → 73.
+- [x] `uv run`/`uvx` quickstart verified on clean env (`uvx --from .
+      karne validate`; pipx not in the sandbox image — documented as
+      equivalent).
+- [x] Final polish: `CONTRIBUTING.md`, README limits note that `count`
+      measures words/chars not tokens (BPE agglutination gap), README.tr
+      synced.
+
+## Beyond round 8 (ideas, unscheduled)
 - [ ] More OCR templates beyond 11 (hastane sevk, mahkeme kararı,
       sigorta poliçesi) once a template style settles.
-- [ ] Compare auto-baseline (`--best` flag or `vs` subcommand) — current
-      N-file compare pins file order to file 1.
-- [ ] Final polish: dataset CONTRIBUTING note, README/limits review.
+- [ ] Generic de/da clitic-vs-suffix split needs real morphology; the
+      separated-vowel subset shipped in round 8 covers the safe half.
+- [ ] Public-name decision (`turkish-llm-scorecard` proposal above),
+      PyPI/release once the repo goes public.
 
 ## Known limits / decisions
 - `json_fields` extracts first balanced `{...}` block; nested braces OK.

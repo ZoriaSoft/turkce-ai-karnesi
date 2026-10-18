@@ -159,6 +159,30 @@ def test_compare_cli_three_files(tmp_path, capsys):
     assert len(data["comparisons"]) == 2
 
 
+def test_compare_cli_best_baseline(tmp_path, capsys):
+    def _w(path, model, scores):
+        path.write_text(json.dumps({
+            "model": model,
+            "summary": {"score": sum(scores) / len(scores)},
+            "tasks": [
+                {"id": f"c/{i+1}", "category": "c", "score": s}
+                for i, s in enumerate(scores)
+            ],
+        }), encoding="utf-8")
+
+    a, b, c = (tmp_path / n for n in ("a.json", "b.json", "c.json"))
+    _w(a, "low", [0.0, 0.0])
+    _w(b, "mid", [1.0, 0.0])
+    _w(c, "top", [1.0, 1.0])
+    # --best picks the highest-scoring file as baseline, not the first
+    rc = main(["compare", str(a), str(b), str(c), "--best", "--json"])
+    assert rc == 0
+    data = json.loads(capsys.readouterr().out)
+    assert data["baseline"]["name"] == "top"
+    assert data["n_runs"] == 3
+    assert [e["name"] for e in data["leaderboard"]] == ["top", "mid", "low"]
+
+
 def test_report_md_stdout(tmp_path, capsys):
     res = tmp_path / "res.json"
     res.write_text(
