@@ -62,18 +62,37 @@ repo/directory/remote keep the current name until then.
       text + `--json` output.
 - [x] Fixed sandbox test recipe (PEP 668 venv) in AGENTS.md.
 
-## Round 4+ candidates
-- [ ] `karne price-estimate`: superseded — folded into `--dry-run`
-      (token + cost estimate). Remaining: richer model-aware output
-      estimate.
+## Round 5 (done)
+- [x] `--repeat N` now issues N real generations per task: each rep>0
+      gets a `cache_salt` (rep 0 keeps the plain cache entry), results
+      carry `rep` indices, the summary reports `n_rep_unstable` +
+      `rep_unstable` (tasks whose pass/fail verdict flips across reps),
+      and `karne compare` pairs `id@repN` keys instead of last-write-wins.
+- [x] `json_fields` `strict: true` now enforced: response JSON with keys
+      absent from `expected` fails (nested-suffix alias matches don't
+      count as extra; `detail.extra` lists offenders). Was a dead spec
+      key before.
+- [x] Seeded OCR-noise generator (`turkce_karne/ocrnoise.py` +
+      `scripts/gen_ocr_tasks.py`): template fields keep canonical values,
+      surrounding text gets diacritic-folding/glyph-misread/spacing noise;
+      emits `dataset/v1/cikartim-ocr.yaml` (8 tasks, 61→69). `--check`
+      mode verifies the committed file is fresh.
+- [x] HTML scorecard: `@repN` marker on repeated tasks, reps/unstable
+      row in run meta.
+
+## Round 5+ candidates
+- [ ] `--dry-run` output estimate: still rough (fixed 400-token guess);
+      model-aware length estimate is the remaining polish.
 - [ ] de/da clitic-vs-suffix: still needs morphology; revisit only with
       a high-precision subset (e.g. after personal pronouns).
 - [ ] GitHub Actions CI (when public): pytest + dataset lint + build check.
 - [ ] `uv run` / `pipx` quickstart verification on a clean env.
-- [ ] Multimodal-free "OCR-like" generator: seeded noise injector to
-      synthesize more fatura/tutanak inputs deterministically.
 - [ ] Turkish tokenizer-aware length checks (BPE vs word discrepancy note).
 - [ ] Golden-file test for the HTML scorecard (structure, not bytes).
+- [ ] Rep-aware aggregation: `summary.score` currently means "mean over
+      reps"; consider also reporting per-task mean/worst-rep rollups.
+- [ ] More OCR templates beyond 8 (kira sözleşmesi, kargo etiketi,
+      laboratuvar sonucu) once a template style settles.
 
 ## Known limits / decisions
 - `json_fields` extracts first balanced `{...}` block; nested braces OK.
@@ -86,3 +105,5 @@ repo/directory/remote keep the current name until then.
   because cache keys are content-based.
 - `--judge-runs` repeats identical judge payloads; the median mitigates
   serving-nondeterminism in the judge, not prompt or rubric bias.
+- `strict: true` on `json_fields` counts keys found only via the
+  nested-suffix alias as legitimate (wrapper objects don't fail strict).

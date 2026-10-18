@@ -13,9 +13,8 @@ def _run(dataset_dir, base, state, **kw):
     cfg = RunConfig(
         model="fake-model",
         dataset_path=str(dataset_dir),
-        concurrency=1,
         cache_dir=None,
-        **kw,
+        **{"concurrency": 1, **kw},
     )
     client = OpenAICompatClient(base, timeout=10)
     results = run_eval(cfg, client=client)
@@ -218,3 +217,58 @@ def test_html_shows_category_chart(dataset_dir, fake_openai, tmp_path):
     html = render_html([r1, r2])
     # two demo tasks in one category — chart only if ≥2 runs or ≥2 cats
     assert "<svg" in html and "<rect" in html
+
+
+# ---- --repeat: real re-generations + rep-stability summary -----------------
+
+
+def test_repeat_generates_independently(dataset_dir, fake_openai):
+    state, base = fake_openai
+    calls = {"n": 0}
+
+    def responder(messages):
+        calls["n"] += 1
+        return "42"
+
+    state.responder = responder
+    results = _run(dataset_dir, base, state, repeat=3)
+    assert calls["n"] == 2 * 3  # 2 tasks x 3 real generations, no cache reuse
+    reps = sorted(t.get("rep", 0) for t in results["tasks"])
+    assert reps == [0, 0, 1, 1, 2, 2]
+    assert results["summary"]["n_rep_unstable"] == 0
+    assert results["summary"]["rep_unstable"] == []
+
+
+def test_repeat_detects_unstable_task(dataset_dir, fake_openai):
+    state, base = fake_openai
+    n = {"t1": 0}
+
+    def responder(messages):
+        user = next(m["content"] for m in messages if m["role"] == "user")
+        if "Bir sayı" in user:
+            n["t1"] += 1
+            return "42" if n["t1"] == 1 else "no answer"
+        return "Cevap: 7"
+
+    state.responder = responder
+    results = _run(dataset_dir, base, state, repeat=3)
+    assert results["summary"]["n_rep_unstable"] == 1
+    assert results["summary"]["rep_unstable"] == ["demo/t1"]
+    t1_scores = [t["score"] for t in results["tasks"] if t["id"] == "demo/t1"]
+    assert t1_scores == [1.0, 0.0, 0.0]
+
+
+def test_repeat_scores_stay_sorted(dataset_dir, fake_openai):
+    state, base = fake_openai
+    state.add_rule("Bir sayı yaz", "42")
+    state.add_rule("Cevap: 7", "Cevap: 7")
+    results = _run(dataset_dir, base, state, repeat=2, concurrency=4)
+    # scores are gathered by index — order must match selection order
+    # regardless of completion interleaving
+    assert [t["id"] for t in results["tasks"]] == [
+        "demo/t1", "demo/t1", "demo/t2", "demo/t2"
+    ]
+    assert [t.get("rep", 0) for t in results["tasks"]] == [0, 1, 0, 1]
+    assert results["summary"]["score"] == 1.0
+    html = render_html(results)
+    assert "@rep1" in html and "per task" in html

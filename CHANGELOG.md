@@ -97,3 +97,36 @@ Format loosely follows Keep a Changelog; versions are dataset/tool aware.
 ### Changed
 - Sandbox test recipe in AGENTS.md now uses a venv (system pip is
   PEP 668 externally-managed on the Debian 13 sandbox).
+
+## [Unreleased] — round 5 (2026-10-18)
+
+### Added
+- `--repeat N` now performs N real generations per task: each rep>0
+  gets a `cache_salt` on the model call (rep 0 keeps the plain cache
+  entry), so repeats measure sampling stability instead of echoing a
+  cached response. `TaskScore.rep` is stored in the results JSON; the
+  summary gains `n_rep_unstable` + `rep_unstable` (tasks whose
+  pass/fail verdict flips across reps) and `karne compare` pairs
+  `id@repN` keys so rep k of run A compares to rep k of run B.
+- Seeded OCR-noise generator: `turkce_karne/ocrnoise.py` renders
+  template documents where `{field}` placeholders keep
+  equivalence-preserving display forms (TR/EN number formats, alternate
+  date spellings, Turkish-aware case drift) while all other text gets
+  realistic scan noise (diacritic folding, O/0-l/1-S/5 misreads, stray
+  spaces, punctuation jitter, indents, separator artifacts).
+  `scripts/gen_ocr_tasks.py` emits `dataset/v1/cikartim-ocr.yaml` —
+  8 new extraction tasks (61 → 69) — and `--check` fails when the
+  committed file is stale.
+- HTML scorecard: `@repN` marker on repeated task rows and a
+  reps/unstable line in run meta.
+
+### Changed
+- `json_fields` `strict: true` is now enforced (it was a silently
+  ignored spec key): a response JSON containing keys absent from
+  `expected` fails the check, with offenders listed in `detail.extra`.
+  Keys matched via the nested-suffix alias do not count as extra.
+  Existing `strict: true` tasks (all `cikartim/*` incl. the 8 new OCR
+  ones) become stricter — scores not comparable with pre-round-5 runs
+  on those tasks.
+- `karne run --dry-run` prints distinct tasks plus `xN reps = M
+  requests` when `--repeat > 1` (was: misleading request count).

@@ -391,6 +391,14 @@ def _check_json_fields(spec: dict, resp: str, ctx) -> CheckResult:
             matched.append(k)
         else:
             missed.append(k)
+    # strict: response JSON may not contain keys absent from `expected`
+    # (keys matched via the nested-suffix rule do not count as extra)
+    extra = [
+        gk
+        for gk in sorted(flat_got)
+        if gk not in flat_exp
+        and not any(gk.endswith("." + k) for k in flat_exp)
+    ]
     total = len(flat_exp)
     ratio = len(matched) / total if total else 0.0
     if required:
@@ -398,11 +406,16 @@ def _check_json_fields(spec: dict, resp: str, ctx) -> CheckResult:
         ok = all(r in matched for r in need)
     else:
         ok = not missed
+    if strict and extra:
+        ok = False
+    detail: dict = {"matched": matched, "missed": missed}
+    if strict and extra:
+        detail["extra"] = extra
     return CheckResult(
         type="json_fields",
         passed=ok,
         fraction=ratio,
-        detail={"matched": matched, "missed": missed},
+        detail=detail,
     )
 
 

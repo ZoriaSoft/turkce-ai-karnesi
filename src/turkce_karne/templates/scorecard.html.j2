@@ -145,6 +145,12 @@
       <div><b>Fingerprint</b>{{ r.config_fingerprint }}</div>
       <div><b>Tokens</b>in {{ r.summary.tokens_in or 0 }} · out {{ r.summary.tokens_out or 0 }}</div>
       <div><b>Cache hits</b>{{ r.summary.cache_hits }}</div>
+      {% if r.summary.n_rep_unstable %}
+      <div><b>Reps</b>{{ r.config.repeat }} per task · <span class="ck-no">{{ r.summary.n_rep_unstable }} unstable</span>
+        <span class="meta">({{ r.summary.rep_unstable | join(", ") }})</span></div>
+      {% elif r.config.repeat and r.config.repeat > 1 %}
+      <div><b>Reps</b>{{ r.config.repeat }} per task · all stable</div>
+      {% endif %}
       {% if r.judge %}
       <div><b>Judge</b>{{ r.judge.model }} w={{ r.judge.weight }} · {{ r.judge.n_judged }} judged{{ ' · %d errors' % r.judge.n_judge_errors if r.judge.n_judge_errors }}</div>
       {% endif %}
@@ -172,7 +178,7 @@
     <details>
       <summary>
         <span class="dot {{ t._state }}"></span>
-        <span class="tid">{{ t.id }}</span>
+        <span class="tid">{{ t.id }}{% if t.rep %}<span class="meta">@rep{{ t.rep }}</span>{% endif %}</span>
         <span class="meta"> — {{ "%.0f"|format(t.score * 100) }}%
           {%- if t.det_score is defined and t.det_score is not none and t.judge %}
             (det {{ "%.0f"|format(t.det_score * 100) }}%{%- if t.judge.score is not none %} + judge {{ "%.0f"|format(t.judge.score * 100) }}%{% endif %})

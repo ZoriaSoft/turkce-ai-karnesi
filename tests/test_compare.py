@@ -173,3 +173,36 @@ def test_format_compare_check_flips():
     b = _run_checks("B", [("c/t", 1.0, [{"type": "contains", "passed": True}])])
     out = format_compare(compare_runs(a, b, include_checks=True))
     assert "check flips: 1" in out and "c/t#0" in out and "contains" in out
+
+
+# ---- rep-aware pairing ------------------------------------------------------
+
+
+def _run_reps(model, tasks):
+    """tasks: [(id, rep, score)]."""
+    return {
+        "model": model,
+        "tasks": [
+            {"id": tid, "score": s, **({"rep": r} if r else {})}
+            for tid, r, s in tasks
+        ],
+    }
+
+
+def test_compare_pairs_reps_separately():
+    a = _run_reps("A", [("c/t", 0, 1.0), ("c/t", 1, 0.0)])
+    b = _run_reps("B", [("c/t", 0, 1.0), ("c/t", 1, 1.0)])
+    rep = compare_runs(a, b)
+    assert rep["n_common"] == 2
+    assert rep["improvements"] == 1
+    by_id = {t["id"]: t for t in rep["tasks"]}
+    assert by_id["c/t"]["flip"] == "same"
+    assert by_id["c/t@rep1"]["flip"] == "improve"
+
+
+def test_compare_rep_only_in_one_run():
+    a = _run_reps("A", [("c/t", 0, 1.0)])
+    b = _run_reps("B", [("c/t", 0, 1.0), ("c/t", 1, 1.0)])
+    rep = compare_runs(a, b)
+    assert rep["n_common"] == 1
+    assert rep["only_in_b"] == ["c/t@rep1"]

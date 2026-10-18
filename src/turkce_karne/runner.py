@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import hashlib
 import json
 import os
@@ -105,7 +106,10 @@ class RunConfig:
         blob = json.dumps(d, ensure_ascii=False, sort_keys=True)
         return hashlib.sha256(blob.encode()).hexdigest()[:16]
 
-def select_tasks(tasks: list[Task], cfg: RunConfig) -> list[Task]:
+def select_tasks(tasks: list[Task], cfg: RunConfig) -> list[tuple[Task, int]]:
+    """Pick (task, repetition) pairs. ``rep`` is 0..cfg.repeat-1 and
+    feeds a cache-key salt in :func:`_score_one` so every repetition is
+    a real, independently sampled generation."""
     sel = list(tasks)
     if cfg.categories:
         want = set(cfg.categories)
@@ -117,9 +121,7 @@ def select_tasks(tasks: list[Task], cfg: RunConfig) -> list[Task]:
     if cfg.sample and cfg.sample < len(sel):
         rng = random.Random(cfg.seed)
         sel = sorted(rng.sample(sel, cfg.sample), key=lambda t: t.id)
-    if cfg.repeat > 1:
-        sel = [t for t in sel for _ in range(cfg.repeat)]
-    return sel
+    return [(t, r) for t in sel for r in range(max(1, cfg.repeat))]
 
 
 def _messages(
@@ -152,17 +154,23 @@ def _score_one(
     client: OpenAICompatClient,
     gen: GenerationConfig,
     task: Task,
+    rep: int,
     system: str,
     judge: JudgeRunner | None = None,
     judge_weight: float = 0.4,
     style: str = "zero",
     exemplar: dict | None = None,
 ) -> TaskScore:
+    # rep 0 reuses the plain cache entry; later reps get a salt so the
+    # model is actually re-asked instead of served the same cached text
+    if rep:
+        gen = dataclasses.replace(gen, cache_salt=f"rep-{rep}")
     try:
         res = client.complete(gen, _messages(task, system, style, exemplar))
     except ClientError as e:
         return TaskScore(
-            id=task.id, category=task.category, score=0.0, error=str(e)
+            id=task.id, category=task.category, score=0.0, error=str(e),
+            rep=rep,
         )
     content = res.content
     if content is None:
@@ -175,6 +183,7 @@ def _score_one(
             latency_ms=res.latency_ms,
             retries=res.retries,
             usage=res.usage,
+            rep=rep,
         )
     try:
         results: list[CheckResult] = [
@@ -191,6 +200,7 @@ def _score_one(
             latency_ms=res.latency_ms,
             retries=res.retries,
             usage=res.usage,
+            rep=rep,
         )
     det = task_score_value(results)
     jres = (
@@ -211,6 +221,7 @@ def _score_one(
         usage=res.usage,
         det_score=det,
         judge=jres.to_dict() if jres is not None else None,
+        rep=rep,
     )
 
 
@@ -312,13 +323,14 @@ def run_eval(
                     client,
                     gen,
                     t,
+                    rep,
                     cfg.system_prompt,
                     judge,
                     cfg.judge_weight,
                     cfg.prompt_style,
                     exemplars.get(t.category) or exemplars.get("default"),
                 ): i
-                for i, t in enumerate(selected)
+                for i, (t, rep) in enumerate(selected)
             }
             tmp: dict[int, TaskScore] = {}
             for fut in as_completed(futs):
@@ -330,13 +342,14 @@ def run_eval(
                 client,
                 gen,
                 t,
+                rep,
                 cfg.system_prompt,
                 judge,
                 cfg.judge_weight,
                 cfg.prompt_style,
                 exemplars.get(t.category) or exemplars.get("default"),
             )
-            for t in selected
+            for t, rep in selected
         ]
     elapsed_ms = int((time.time() - started) * 1000)
     if own_client:
@@ -344,6 +357,18 @@ def run_eval(
     if own_judge_client:
         judge_client.close()
     per_task = [s.to_dict() for s in scores]
+    # tasks whose pass/fail verdict flips between repetitions — a cheap
+    # signal for model nondeterminism when --repeat > 1
+    rep_unstable: list[str] = []
+    if cfg.repeat > 1:
+        rep_groups: dict[str, list[float]] = {}
+        for s in scores:
+            rep_groups.setdefault(s.id, []).append(s.score)
+        rep_unstable = sorted(
+            tid
+            for tid, v in rep_groups.items()
+            if len({x >= 0.999 for x in v}) > 1
+        )
     n = len(scores)
     mean = sum(s.score for s in scores) / n if n else 0.0
     cat_sums: dict[str, list[float]] = {}
@@ -425,6 +450,9 @@ def run_eval(
         },
         "tasks": per_task,
     }
+    if cfg.repeat > 1:
+        results["summary"]["n_rep_unstable"] = len(rep_unstable)
+        results["summary"]["rep_unstable"] = rep_unstable
     if judge is not None:
         results["judge"] = {
             "model": cfg.judge_model,

@@ -72,7 +72,9 @@ class TaskScore:
     det_score: float | None = None
     # serializable judge verdict dict (JudgeResult.to_dict) or None
     judge: dict | None = None
-
+    # repetition index when --repeat > 1 (0 = first pass); each rep gets
+    # a distinct cache key so every pass is a real generation
+    rep: int = 0
     def to_dict(self) -> dict:
         d = {
             "id": self.id,
@@ -93,6 +95,8 @@ class TaskScore:
             d["cached"] = True
         if self.retries:
             d["retries"] = self.retries
+        if self.rep:
+            d["rep"] = self.rep
         if self.usage:
             d["usage"] = self.usage
         return d

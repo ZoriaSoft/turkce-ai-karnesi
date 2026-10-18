@@ -1,0 +1,308 @@
+# Çıkartım/OCR — synthetic OCR-noised extraction tasks.
+# GENERATED FILE — do not edit by hand. Rebuild with
+# `python3 scripts/gen_ocr_tasks.py` (see --check).
+# Field values stay canonical; noise hits labels, layout and
+# distractors only. All documents are fictional.
+items:
+  - id: cikartim/ocr-fatura
+    category: cikartim
+    difficulty: 4
+    prompt: >-
+      Aşağıdaki metin bozuk bir taramanın (OCR) çıktısıdır; satırlarda okuma
+      hataları olabilir. İstenen alanları metnin İFADE ETTİĞİ değerlerle
+      çıkar ve YALNIZCA JSON yaz (açıklama yok). Alanlar: satici_unvan,
+      fatura_no, tarih, ara_toplam, kdv, genel_toplam. Tarihleri YYYY-MM-DD
+      biçiminde, tutarları sayı olarak yaz.
+    input: |
+      KOZA BİLİŞİM VE ELEKTRONİK TİC. A.Ş.
+      Merkez Mah. 718. Sk. N0:12 Çank aya/ANKARA
+      VKN: 2750483160   Mersis: 0275048316000019
+        e-Arşiv Fatura No : ETT2026/04127
+      Düzenleme Tarihi : 13 Ekim 2026   Saat: 11:47
+      -- ----- -- ------------------ -------- 
+      3x USB-C şarj aleti 25W     449,90   l.349,70
+
+      1x Cat6 kablo 30m         520,00     520,00
+      -- ----------- ----------------- - -----
+      ARA TOPLAM   : ₺1.869,70
+      KDV (%20)   : ₺373,94
+       GENEL TOPLA M: 2.243,64
+       Ödeme şekli : KREDİ KARTI - provizyon 004291
+      e-Arşiv başvuru seri no: ETB-7742-31
+    expected:
+      satici_unvan: "Koza Bilişim ve Elektronik Tic. A.Ş."
+      fatura_no: "ETT2026/04127"
+      tarih: "2026-10-13"
+      ara_toplam: 1869.7
+      kdv: 373.94
+      genel_toplam: 2243.64
+    checks:
+      - type: json_fields
+        strict: true
+      - type: not_contains
+        terms: ["açıklama", "not:"]
+    notes: >-
+      synthetic OCR-noised document; regenerate via scripts/gen_ocr_tasks.py
+      (seed ocr-fatura-v1)
+
+  - id: cikartim/ocr-makbuz
+    category: cikartim
+    difficulty: 3
+    prompt: >-
+      Aşağıdaki metin bozuk bir taramanın (OCR) çıktısıdır; satırlarda okuma
+      hataları olabilir. İstenen alanları metnin İFADE ETTİĞİ değerlerle
+      çıkar ve YALNIZCA JSON yaz (açıklama yok). Alanlar: market_adi,
+      fis_no, tarih, urun_sayisi, toplam. Tarihleri YYYY-MM-DD biçiminde,
+      tutarları sayı olarak yaz.
+    input: |
+      DENİZ MARKET G1DA LTD. - ŞUBE3
+      Fiş No: B-0047-2216    Tarih: 15.10.2026  19:22
+      Kasiyer: A. YÜKSEL   Kasa : 05
+      ========================================
+       Süt 1L               47,50
+
+      Tam bugday ekmek     32,00
+      Beyaz pe ynir50Og   189,90
+
+      Yumurta 10lu         84,95
+      Domates kg          58,00
+      ========================================
+      Ürün sayısı : 07
+      TOPLAM      : 412,35 TL TL
+      Nak it: 500,00   Para üstü: 87,65
+      Barkod: 8 698745 120033
+    expected:
+      market_adi: "Deniz Market Gıda Ltd."
+      fis_no: "B-0047-2216"
+      tarih: "2026-10-15"
+      urun_sayisi: 7
+      toplam: 412.35
+    checks:
+      - type: json_fields
+        strict: true
+      - type: not_contains
+        terms: ["açıklama", "not:"]
+    notes: >-
+      synthetic OCR-noised document; regenerate via scripts/gen_ocr_tasks.py
+      (seed ocr-makbuz-v1)
+
+  - id: cikartim/ocr-asansor-tutanak
+    category: cikartim
+    difficulty: 4
+    prompt: >-
+      Aşağıdaki metin bozuk bir taramanın (OCR) çıktısıdır; satırlarda okuma
+      hataları olabilir. İstenen alanları metnin İFADE ETTİĞİ değerlerle
+      çıkar ve YALNIZCA JSON yaz (açıklama yok). Alanlar: tutanak_no, tarih,
+      bina_adresi, gorevli, ariza_ozeti. Tarihleri YYYY-MM-DD biçiminde,
+      tutarları sayı olarak yaz.
+    input: |
+      ASANSÖR PERİYODİK KONTROL / ARIZA TUTANAĞI
+      Tutanak No: AST-2026-118
+      Tarih: 16.10.2026    Varış: 10:15
+      Binaadresi : gül mah. lale sk. no:7 kadıköy/istanbul
+       Bakım görevlisi: rıfat kandemir
+      Gözlem : Kabin halatında aşınma ve kabarma tespit
+      edilmiştir. Fren testi olumsuz sonuç verdi.
+      Arıza özeti: asansor kabin halati asinmasi
+      Karar: Asansörün kullanımı, halat değişimi tamamlanana
+      kadar geçici olarak durdurulmuştur.
+      Firma kaşe: Tekniklift Bakım San.   İmza : (okunamiyor)
+    expected:
+      tutanak_no: "AST-2026-118"
+      tarih: "2026-10-16"
+      bina_adresi: "Gül Mah. Lale Sk. No:7 Kadıköy/İSTANBUL"
+      gorevli: "Rıfat Kandemir"
+      ariza_ozeti: "asansor kabin halati asinmasi"
+    checks:
+      - type: json_fields
+        required: ["tutanak_no", "tarih"]
+      - type: not_contains
+        terms: ["açıklama", "not:"]
+    notes: >-
+      synthetic OCR-noised document; regenerate via scripts/gen_ocr_tasks.py
+      (seed ocr-asansor-tutanak-v1)
+
+  - id: cikartim/ocr-irsaliye
+    category: cikartim
+    difficulty: 3
+    prompt: >-
+      Aşağıdaki metin bozuk bir taramanın (OCR) çıktısıdır; satırlarda okuma
+      hataları olabilir. İstenen alanları metnin İFADE ETTİĞİ değerlerle
+      çıkar ve YALNIZCA JSON yaz (açıklama yok). Alanlar: irsaliye_no,
+      gonderen, alici, kalem_sayisi, plaka. Tarihleri YYYY-MM-DD biçiminde,
+      tutarları sayı olarak yaz.
+    input: |
+      SEVK İRSALİYESİ   (tedarik)
+
+      İrsaliye No :IR-2026-6621
+      Gönderen : ege kâğıt ürünleri san. ltd. (Manisa)
+
+      Alıcı    : ünal kırtasiye depo - İzmir/B0rnova
+      Kalemler :
+        A4 fotokopi kağıdı 500y x30 k0li
+
+        Klasör (mavi) x120
+
+        Zarf 90gr x50 paket
+        Not defteri A5 x200
+       KALEM SAYISI : 04
+      Şoför: M. GÜRSOY   Araç plakasi: 35 GKT 412
+      Sevk tarihi: 17.10.2026 (tahmini teslim)
+    expected:
+      irsaliye_no: "IR-2026-6621"
+      gonderen: "Ege Kâğıt Ürünleri San. Ltd."
+      alici: "Ünal Kırtasiye Depo"
+      kalem_sayisi: 4
+      plaka: "35 GKT 412"
+    checks:
+      - type: json_fields
+        strict: true
+      - type: not_contains
+        terms: ["açıklama", "not:"]
+    notes: >-
+      synthetic OCR-noised document; regenerate via scripts/gen_ocr_tasks.py
+      (seed ocr-irsaliye-v1)
+
+  - id: cikartim/ocr-siparis
+    category: cikartim
+    difficulty: 3
+    prompt: >-
+      Aşağıdaki metin bozuk bir taramanın (OCR) çıktısıdır; satırlarda okuma
+      hataları olabilir. İstenen alanları metnin İFADE ETTİĞİ değerlerle
+      çıkar ve YALNIZCA JSON yaz (açıklama yok). Alanlar: musteri,
+      siparis_no, odeme_turu, tutar, teslim_sehir. Tarihleri YYYY-MM-DD
+      biçiminde, tutarları sayı olarak yaz.
+    input: |
+      *** SİPARİŞ ÖZETİ (san al mağaza) ***
+
+      Müşteri  : sertaç yıldır (sertac@example-mail.com)
+      ----------------------------------
+      Sipariş No: SP-44071
+      Kalem     : 1x kamp çadırı 2 kisilik - 749,85 TL
+                 1x uyku tulumu            - 149,90 TL
+      Kargo    : ücretsiz (>500 TL kampanyası)
+      ODEME    : HAVALE/EFT
+      ------ ----------- --- --------- --------- ----
+       TOPLAM   : 899,75 TL
+       TESLİMAT : İZMİR - Bayraklı
+      Not: kargo çıkışi Cuma günü planlandı.
+    expected:
+      musteri: "Sertaç Yıldır"
+      siparis_no: "SP-44071"
+      odeme_turu: "HAVALE/EFT"
+      tutar: 899.75
+      teslim_sehir: "İzmir"
+    checks:
+      - type: json_fields
+        strict: true
+      - type: not_contains
+        terms: ["açıklama", "not:"]
+    notes: >-
+      synthetic OCR-noised document; regenerate via scripts/gen_ocr_tasks.py
+      (seed ocr-siparis-v1)
+
+  - id: cikartim/ocr-recete
+    category: cikartim
+    difficulty: 4
+    prompt: >-
+      Aşağıdaki metin bozuk bir taramanın (OCR) çıktısıdır; satırlarda okuma
+      hataları olabilir. İstenen alanları metnin İFADE ETTİĞİ değerlerle
+      çıkar ve YALNIZCA JSON yaz (açıklama yok). Alanlar: doktor, hasta,
+      tarih, ilac_sayisi, teshis. Tarihleri YYYY-MM-DD biçiminde, tutarları
+      sayı olarak yaz.
+    input: |
+      AİLE HEKİMLİĞİ REÇETESİ
+         Dr. hale soylu   Aile Hekimi (birim 2)
+      Hasta: NECDET ARMAN    Protokol: 2026/88412
+      ------------------
+      Tarih: 17-10-2026
+      -----------------------------------
+      Rp/ 1. Amoksisilin 1000mg tb 2x1
+          2. PARASETAMOL 500MG TB 3X1
+          3. BOĞAZ SPREYİ 30ML 3X2
+          4. D vitamini damla 1x 7
+      TEŞHİS: AKUT FARENJİT
+      Not: bol sıvı, sigara yasak. Kontrol 1 hafta.
+    expected:
+      doktor: "Hale Soylu"
+      hasta: "Necdet Arman"
+      tarih: "2026-10-17"
+      ilac_sayisi: 4
+      teshis: "akut farenjit"
+    checks:
+      - type: json_fields
+        required: ["doktor", "tarih", "ilac_sayisi"]
+      - type: not_contains
+        terms: ["açıklama", "not:"]
+    notes: >-
+      synthetic OCR-noised document; regenerate via scripts/gen_ocr_tasks.py
+      (seed ocr-recete-v1)
+
+  - id: cikartim/ocr-uyelik
+    category: cikartim
+    difficulty: 3
+    prompt: >-
+      Aşağıdaki metin bozuk bir taramanın (OCR) çıktısıdır; satırlarda okuma
+      hataları olabilir. İstenen alanları metnin İFADE ETTİĞİ değerlerle
+      çıkar ve YALNIZCA JSON yaz (açıklama yok). Alanlar: uye_adi, uye_no,
+      baslangic, aidat, telefon. Tarihleri YYYY-MM-DD biçiminde, tutarları
+      sayı olarak yaz.
+    input: |
+      SPOR SALONU ÜYELİK FORMU (fotokopi)
+      Ad soyad : Fidan Özgür
+      -------------------
+      Üye no   : UY-33820
+       BAŞLANGIÇ: 12/10/2026 (12 AY TAAHHÜT)
+      Aylık aidat : 750,00
+      Telefon  : 0532 614 88 02
+       Acil durum: annesi - 0533 207 41 66
+        İmza:____  Yetkili: D. ALGAN
+      ----------
+    expected:
+      uye_adi: "Fidan Özgür"
+      uye_no: "UY-33820"
+      baslangic: "2026-10-12"
+      aidat: 750.0
+      telefon: "0532 614 88 02"
+    checks:
+      - type: json_fields
+        strict: true
+      - type: not_contains
+        terms: ["açıklama", "not:"]
+    notes: >-
+      synthetic OCR-noised document; regenerate via scripts/gen_ocr_tasks.py
+      (seed ocr-uyelik-v1)
+
+  - id: cikartim/ocr-gider-nota
+    category: cikartim
+    difficulty: 4
+    prompt: >-
+      Aşağıdaki metin bozuk bir taramanın (OCR) çıktısıdır; satırlarda okuma
+      hataları olabilir. İstenen alanları metnin İFADE ETTİĞİ değerlerle
+      çıkar ve YALNIZCA JSON yaz (açıklama yok). Alanlar: belge_no, tarih,
+      unvan, aciklama, tutar. Tarihleri YYYY-MM-DD biçiminde, tutarları sayı
+      olarak yaz.
+    input: |
+      GİDER MAKBUZU / NOTA
+      Belge no  : GN-2026/0903
+      Tarih    : 18.10.2026
+        Ödeyen   : Site Yönetimi - Menekse Sitesi
+      Alan     : PARS ÇEVRE TEMİZLİK HİZMETLERİ
+         A çıklama : EKİM ayı ortak alan temizliği
+      Tutar     : 1.575,00 TL TL (KDV dahil, elden)
+      Kaşe/imza: var (okunamayan bölge)
+    expected:
+      belge_no: "GN-2026/0903"
+      tarih: "2026-10-18"
+      unvan: "Pars Çevre Temizlik Hizmetleri"
+      aciklama: "EKİM"
+      tutar: 1575.0
+    checks:
+      - type: json_fields
+        strict: true
+      - type: not_contains
+        terms: ["açıklama", "not:"]
+    notes: >-
+      synthetic OCR-noised document; regenerate via scripts/gen_ocr_tasks.py
+      (seed ocr-gider-nota-v1)
+

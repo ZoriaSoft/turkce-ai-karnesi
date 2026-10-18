@@ -208,6 +208,39 @@ def test_json_fields_number_normalization():
     assert r.passed
 
 
+def test_json_fields_strict_rejects_extra_keys():
+    resp = '{"a": 1, "b": 2, "yorum": "ekstra alan"}'
+    r = chk("json_fields", resp, expected={"a": 1, "b": 2}, strict=True)
+    assert not r.passed
+    assert r.detail["extra"] == ["yorum"]
+    assert r.fraction == 1.0  # all expected fields still matched
+
+
+def test_json_fields_strict_passes_exact_keys():
+    resp = '{"a": 1, "b": 2}'
+    r = chk("json_fields", resp, expected={"a": 1, "b": 2}, strict=True)
+    assert r.passed
+
+
+def test_json_fields_strict_tolerates_nested_wrapper():
+    # fields found under a wrapper object are alias-matched, not "extra"
+    resp = '{"belge": {"tutar": 5, "tarih": "2026-10-12"}}'
+    r = chk(
+        "json_fields",
+        resp,
+        expected={"tutar": 5, "tarih": "2026-10-12"},
+        strict=True,
+    )
+    assert r.passed
+
+
+def test_json_fields_non_strict_ignores_extra():
+    resp = '{"a": 1, "ek": "serbest"}'
+    r = chk("json_fields", resp, expected={"a": 1})
+    assert r.passed
+
+
+
 # ---- turkish_share / no_refusal -------------------------------------------
 
 

@@ -54,7 +54,9 @@ def build_parser() -> argparse.ArgumentParser:
     rp.add_argument("--sample", type=int, help="sample N tasks (seeded)")
     rp.add_argument("--seed", type=int, default=42)
     rp.add_argument("--repeat", type=int, default=1,
-                    help="repeat each task N times")
+                    help="repeat each task N times (each rep is a real "
+                    "generation via a cache-key salt; reps measure "
+                    "sampling stability — see n_rep_unstable)")
     rp.add_argument("--temperature", type=float, default=0.0)
     rp.add_argument("--max-tokens", type=int, default=2048)
     rp.add_argument("--concurrency", type=int, default=4)
@@ -196,14 +198,18 @@ def cmd_run(args) -> int:
                 j += f", runs={cfg.judge_runs}"
             print(j + ")")
         print(f"dataset:  {cfg.version} · {len(tasks)} items total")
-        print(f"selected: {len(sel)} task(s)")
-        for t in sel:
-            print(f"  - {t.id} (d{t.difficulty}, {len(t.checks)} checks)")
+        n_tasks = len({t.id for t, _ in sel})
+        print(f"selected: {n_tasks} task(s)"
+              + (f" x{cfg.repeat} reps = {len(sel)} requests"
+                 if cfg.repeat > 1 else ""))
+        for t, rep in sel:
+            if rep == 0:
+                print(f"  - {t.id} (d{t.difficulty}, {len(t.checks)} checks)")
         # crude token estimate: ~4 chars/token for Turkish text in+out;
         # output assumed at a typical few-hundred-token completion
         chars = sum(
             len(t.prompt) + len(t.input or "") + len(cfg.system_prompt)
-            for t in sel
+            for t, _ in sel
         )
         est_in = chars // 4
         est_out = min(cfg.max_tokens, 400) * len(sel)
@@ -235,6 +241,9 @@ def cmd_run(args) -> int:
     print(f"score:  {s['score'] * 100:.1f}%  ({s['n']} tasks, {s['errors']} errors)")
     for cat, cs in s["by_category"].items():
         print(f"  {cat:<16} {cs['score'] * 100:5.1f}%  n={cs['n']}")
+    if s.get("n_rep_unstable"):
+        print(f"unstable: {s['n_rep_unstable']} task(s) flip verdict "
+              f"across reps: {', '.join(s['rep_unstable'][:6])}")
     if s.get("est_cost_usd") is not None:
         print(f"cost:   ~${s['est_cost_usd']:.4f}")
     print(f"time:   {s['elapsed_ms'] / 1000:.1f}s  cache hits: {s['cache_hits']}")

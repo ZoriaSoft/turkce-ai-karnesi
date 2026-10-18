@@ -3,9 +3,10 @@
 Türkçe'de gerçekten iş gören LLM'leri ölçen bir değerlendirme kiti — özellikle
 insanların fiilen kullandığı ucuz/ücretsiz modeller için.
 
-61 özgün görev (veri seti v1, CC-BY-4.0) 8 kategoride: resmi yazı/dilekçe,
-e-posta, özet, dağınık belgeden alan çıkartımı (fatura/tutanak), imla kuralları
-(de/da, ki, soru eki), yönerge takibi, TR↔EN çeviri, akıl yürütme.
+69 özgün görev (veri seti v1, CC-BY-4.0) 8 kategoride: resmi yazı/dilekçe,
+e-posta, özet, dağınık belgeden alan çıkartımı (fatura/tutanak — 8'i tohumlu
+OCR gürültüsüyle üretilmiş), imla kuralları (de/da, ki, soru eki), yönerge
+takibi, TR↔EN çeviri, akıl yürütme.
 
 ## Hızlı başlangıç
 
@@ -30,6 +31,8 @@ alınır — tek puanlık sapmayı azaltır). İki koşuyu karşılaştırmak i�
 `karne compare a.json b.json` — görev bazında fark, iyileşme/gerileme ve
 McNemar anlamlılık testi; `--checks` kontrol bazında geçme/kalma
 değişimlerini de listeler.
-İstem stili değiştirilebilir: `--prompt-style zero|fewshot|cot`.
+İstem stili değiştirilebilir: `--prompt-style zero|fewshot|cot`. Kararlılığı
+ölçmek için `--repeat N` her görevi N kez gerçekten üretir; özet, tekrarlar
+arasında sonucu değişen görevleri `rep_unstable` olarak listeler.
 
 Detaylar ve veri seti şeması için: [`README.md`](README.md)

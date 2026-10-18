@@ -34,14 +34,14 @@ per-task expandable responses.
 
 ## What gets tested
 
-61 original tasks (dataset v1, CC-BY-4.0) across 8 categories:
+69 original tasks (dataset v1, CC-BY-4.0) across 8 categories:
 
 | Category      | What it measures                                   |
 |---------------|----------------------------------------------------|
 | `resmi-yazi`  | Dilekçe format: kurum → Sayın → metin → tarih/imza |
 | `eposta`      | Konu: line, greeting, closing                      |
 | `ozet`        | Summaries under hard word/sentence budgets         |
-| `cikartim`    | Field extraction (JSON) from OCR-like fatura/tutanak |
+| `cikartim`    | Field extraction (JSON) from OCR-like fatura/tutanak — 8 of them generated with seeded OCR noise (`scripts/gen_ocr_tasks.py`) |
 | `imla`        | de/da, ki, soru eki mi/mı, bitişik yazım           |
 | `yonerge`     | Strict format: prefixes, line counts, no dots      |
 | `ceviri`      | TR↔EN content-word accuracy                        |
@@ -90,6 +90,8 @@ karne list [--categories imla,ceviri]     # show tasks
 karne validate                            # dataset + check-spec lint
 karne run --model M [--tasks id1,id2] [--sample 10 --seed 7]
           [--repeat 3] [--concurrency 4] [--rpm 60]
+                         # --repeat N = N real generations/task (cache-key
+                         # salt); summary reports verdict flips across reps
           [--prompt-style zero|fewshot|cot]
           [--judge-model J --judge-weight 0.4 --judge-runs 3]
           [--out results/x.json] [--html]
@@ -143,7 +145,9 @@ check-spec drift between the two runs.
 
 ## Dataset
 
-`dataset/v1/*.yaml`, one file per category. Schema per item:
+`dataset/v1/*.yaml`, one file per category (plus the generated
+`cikartim-ocr.yaml` — edit `scripts/gen_ocr_tasks.py` instead and rebuild
+with `python3 scripts/gen_ocr_tasks.py`). Schema per item:
 
 ```yaml
 - id: cikartim/fatura        # <category>/<slug>, unique
@@ -168,8 +172,9 @@ contributions welcome under CC-BY-4.0.
 - The judge is a model too — it can be wrong or biased toward its own
   family's style. Deterministic checks stay the ground truth; the judge
   is a bounded 0–3 rubric, not free-form scoring.
-- `json_fields` compares the expected subset; extra keys in the response
-  are ignored.
+- `json_fields` compares the expected fields; extra keys in the response
+  are ignored unless the spec sets `strict: true` (then extras fail the
+  check and are listed in `detail.extra`).
 - Turkish morphology isn't modeled — de/da/ki correctness is tested via
   authored tasks, `written_form`, and the high-precision `spelling_rules`
   scans (unambiguous cases only); a general grammar check stays out of scope.

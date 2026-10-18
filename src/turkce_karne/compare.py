@@ -14,9 +14,16 @@ import math
 PASS_THRESHOLD = 0.999
 
 
+def _key(t: dict) -> str:
+    """Pair key: task id plus repetition index (``x@rep2``) so --repeat
+    runs compare each rep with its counterpart, not last-write-wins."""
+    rep = t.get("rep", 0)
+    return f"{t['id']}@rep{rep}" if rep else t["id"]
+
+
 def _norm_runs(a: dict, b: dict) -> tuple[dict, dict]:
-    ta = {t["id"]: t for t in a.get("tasks", [])}
-    tb = {t["id"]: t for t in b.get("tasks", [])}
+    ta = {_key(t): t for t in a.get("tasks", [])}
+    tb = {_key(t): t for t in b.get("tasks", [])}
     return ta, tb
 
 
@@ -67,11 +74,12 @@ def compare_runs(a: dict, b: dict, *, include_checks: bool = False) -> dict:
     """Compare results dict B against baseline A (B is the 'new' run).
 
     Returns a JSON-serializable report; ``a``/``b`` tasks are paired by
-    task id. Tasks present in only one run are listed under
-    ``only_in_*``. With ``include_checks`` each task row also carries a
-    ``checks`` list pairing the two runs' check verdicts by position —
-    a check entry notes its type, pass/fail in A and B, and the flip
-    direction; ``type_changed`` marks spec drift between runs.
+    task id plus repetition index (``rep`` key, default 0). Tasks
+    present in only one run are listed under ``only_in_*``. With
+    ``include_checks`` each task row also carries a ``checks`` list
+    pairing the two runs' check verdicts by position — a check entry
+    notes its type, pass/fail in A and B, and the flip direction;
+    ``type_changed`` marks spec drift between runs.
     """
     ta, tb = _norm_runs(a, b)
     common = sorted(set(ta) & set(tb))
