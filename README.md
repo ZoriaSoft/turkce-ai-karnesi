@@ -91,10 +91,10 @@ karne validate                            # dataset + check-spec lint
 karne run --model M [--tasks id1,id2] [--sample 10 --seed 7]
           [--repeat 3] [--concurrency 4] [--rpm 60]
           [--prompt-style zero|fewshot|cot]
-          [--judge-model J --judge-weight 0.4]
+          [--judge-model J --judge-weight 0.4 --judge-runs 3]
           [--out results/x.json] [--html]
 karne report a.json b.json --out compare.html   # multi-model scorecard
-karne compare a.json b.json [--json]            # paired diff + flips
+karne compare a.json b.json [--json] [--checks]  # paired diff + flips
 ```
 
 Useful flags: `--dry-run` prints the selection plus a rough token/cost
@@ -124,6 +124,10 @@ with strict JSON; parse failures fall back to the deterministic score.
 - Final score = `det * (1 - w) + judge * w` where `w` is
   `--judge-weight` (default 0.4). `det_score` and the per-criterion
   verdicts stay in the results JSON and HTML.
+- `--judge-runs N` (1–9, default 1) judges each response N times and
+  keeps the per-criterion median verdict — mitigates single-verdict
+  variance. Attempts share the wire payload but get distinct cache keys;
+  partial failures still produce a verdict (`n_errors` in the JSON).
 
 ### Comparing runs
 
@@ -131,6 +135,11 @@ with strict JSON; parse failures fall back to the deterministic score.
 deltas, flip counts (fail→pass improvements, pass→fail regressions) and
 a McNemar significance test (exact binomial under 25 discordant pairs,
 chi-square with continuity correction above).
+
+`karne compare a.json b.json --checks` additionally reports per-check
+verdict flips (check position, type, pass/fail in A and B) — a task
+score can move because one specific check flipped; `type_changed` marks
+check-spec drift between the two runs.
 
 ## Dataset
 

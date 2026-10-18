@@ -87,6 +87,9 @@ def build_parser() -> argparse.ArgumentParser:
     rp.add_argument("--judge-categories", default=None,
                     help="comma-separated categories to judge "
                     "('all' = every task; default: free-text categories)")
+    rp.add_argument("--judge-runs", type=int, default=1,
+                    help="judge each response N times, median verdict "
+                    "(1-9, default 1; mitigates judge variance)")
 
     hp = sub.add_parser("report", help="Render results JSON(s) to HTML")
     hp.add_argument("results", nargs="+", help="results JSON file(s)")
@@ -98,6 +101,8 @@ def build_parser() -> argparse.ArgumentParser:
     cp.add_argument("b", help="new results JSON")
     cp.add_argument("--json", action="store_true",
                     help="print machine-readable JSON to stdout")
+    cp.add_argument("--checks", action="store_true",
+                    help="also report per-check verdict flips")
 
     return p
 
@@ -176,6 +181,7 @@ def cmd_run(args) -> int:
             )
         ),
         prompt_style=args.prompt_style,
+        judge_runs=args.judge_runs,
     )
     if args.dry_run:
         from .runner import select_tasks
@@ -185,7 +191,10 @@ def cmd_run(args) -> int:
         print(f"model:    {cfg.model}")
         print(f"style:    {cfg.prompt_style}")
         if cfg.judge_model:
-            print(f"judge:    {cfg.judge_model} (w={cfg.judge_weight})")
+            j = f"judge:    {cfg.judge_model} (w={cfg.judge_weight}"
+            if cfg.judge_runs > 1:
+                j += f", runs={cfg.judge_runs}"
+            print(j + ")")
         print(f"dataset:  {cfg.version} · {len(tasks)} items total")
         print(f"selected: {len(sel)} task(s)")
         for t in sel:
@@ -244,7 +253,9 @@ def cmd_report(args) -> int:
 
 
 def cmd_compare(args) -> int:
-    rep = compare_runs(load_results(args.a), load_results(args.b))
+    rep = compare_runs(
+        load_results(args.a), load_results(args.b), include_checks=args.checks
+    )
     if args.json:
         print(json.dumps(rep, ensure_ascii=False, indent=2))
     else:

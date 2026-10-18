@@ -13,4 +13,4 @@
   (model, messages, generation params). Do not introduce nondeterminism.
 - Dataset contributions: one YAML file per category under `dataset/vN/`;
   keep IDs `<category>/<slug>`, unique and stable once published.
-- Before committing: `cirak-run "pip install -e .[dev] && pytest -q"`.
+- Before committing: `cirak-run "python3 -m venv .venv && .venv/bin/pip install -e '.[dev]' -q && .venv/bin/pytest -q"` (system pip is PEP 668 externally-managed — always use a venv on the sandbox).

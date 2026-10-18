@@ -6,7 +6,10 @@ from turkce_karne.client import OpenAICompatClient
 from turkce_karne.judge import (
     CRITERIA,
     DEFAULT_JUDGE_CATEGORIES,
+    JudgeResult,
     JudgeRunner,
+    _median,
+    _merge_verdicts,
     judge_messages,
     parse_judge_json,
 )
@@ -224,3 +227,151 @@ def test_fingerprint_changes_with_judge(dataset_dir):
     b = _run_cfg(dataset_dir, judge_model="j")
     c = _run_cfg(dataset_dir, judge_model="j", judge_weight=0.2)
     assert a.fingerprint() != b.fingerprint() != c.fingerprint()
+
+
+# ---- judge_runs: median over N attempts -------------------------------------
+
+
+def test_median_odd_even():
+    assert _median([1, 3, 2]) == 2.0
+    assert _median([1, 3]) == 2.0
+    assert _median([0, 0, 3]) == 0.0
+
+
+def _verdict(a, b, c):
+    scores = {
+        "instruction_following": a,
+        "turkish_quality": b,
+        "correctness": c,
+    }
+    return JudgeResult(
+        score=sum(scores.values()) / 9, scores=scores, rationale="x"
+    )
+
+
+def test_merge_verdicts_per_criterion_median():
+    m = _merge_verdicts(
+        [_verdict(3, 3, 3), _verdict(0, 0, 0), _verdict(2, 1, 3)]
+    )
+    assert m.scores == {
+        "instruction_following": 2,
+        "turkish_quality": 1,
+        "correctness": 3,
+    }
+    assert m.score == pytest.approx(6 / 9)
+    assert len(m.runs) == 3 and m.runs[0]["score"] == 9
+
+
+def test_merge_verdicts_all_failed():
+    bad = JudgeResult(error="judge_parse: no_json")
+    m = _merge_verdicts([bad, bad])
+    assert m.score is None and "judge_parse" in m.error
+    assert m.runs is not None and all(r["score"] is None for r in m.runs)
+
+
+def test_judge_runner_runs_median(fake_openai):
+    state, base = fake_openai
+    verdicts = iter(
+        [
+            '{"instruction_following": 3, "turkish_quality": 3,'
+            ' "correctness": 3, "rationale": "r1"}',
+            '{"instruction_following": 1, "turkish_quality": 1,'
+            ' "correctness": 1, "rationale": "r2"}',
+            '{"instruction_following": 2, "turkish_quality": 2,'
+            ' "correctness": 2, "rationale": "r3"}',
+        ]
+    )
+    state.responder = lambda messages: next(verdicts)
+    jr = JudgeRunner(
+        _jclient(base, state), "judge-x", categories={"demo"}, runs=3
+    )
+    res = jr.judge(Task(id="d/t", category="demo", prompt="p"), "r")
+    assert res.error is None
+    assert res.score == pytest.approx(6 / 9)
+    assert res.scores["instruction_following"] == 2
+    assert res.rationale == "r3"  # attempt nearest the median total
+    assert res.runs is not None and len(res.runs) == 3
+    assert len(state.requests) == 3
+    # attempts share the wire payload; only the cache key differs
+    assert all(
+        r["messages"] == state.requests[0]["messages"]
+        for r in state.requests
+    )
+
+
+def test_judge_runner_runs_tolerates_errors(fake_openai):
+    state, base = fake_openai
+    verdicts = iter(
+        [
+            '{"instruction_following": 3, "turkish_quality": 3,'
+            ' "correctness": 3}',
+            "garbage",
+            '{"instruction_following": 1, "turkish_quality": 1,'
+            ' "correctness": 1}',
+        ]
+    )
+    state.responder = lambda messages: next(verdicts)
+    jr = JudgeRunner(
+        _jclient(base, state), "judge-x", categories={"demo"}, runs=3
+    )
+    res = jr.judge(Task(id="d/t", category="demo", prompt="p"), "r")
+    # median of the two good attempts: (3+1)/2 = 2 per criterion
+    assert res.score == pytest.approx(6 / 9)
+    d = res.to_dict()
+    assert d["n_errors"] == 1 and len(d["runs"]) == 3
+
+
+def test_judge_runner_runs_all_fail_falls_back(fake_openai):
+    state, base = fake_openai
+    state.responder = lambda messages: "garbage"
+    jr = JudgeRunner(
+        _jclient(base, state), "judge-x", categories={"demo"}, runs=3
+    )
+    res = jr.judge(Task(id="d/t", category="demo", prompt="p"), "r")
+    assert res.score is None and res.error.startswith("judge_parse")
+    assert res.to_dict()["n_errors"] == 3
+
+
+def test_run_eval_judge_runs_recorded(dataset_dir, fake_openai):
+    state, base = fake_openai
+    state.add_rule(
+        "MODEL ÇIKTISI",
+        '{"instruction_following": 3, "turkish_quality": 3,'
+        ' "correctness": 3, "rationale": "ok"}',
+    )
+    state.add_rule("Bir sayı yaz.", "42")
+    state.add_rule("Cevap: 7", "Cevap: 7")
+    client = OpenAICompatClient(base, api_key="k", timeout=5, max_retries=0)
+    judge_client = OpenAICompatClient(base, api_key="k", timeout=5, max_retries=0)
+    cfg = _run_cfg(
+        dataset_dir,
+        judge_model="judge-fake",
+        judge_categories=["*"],
+        judge_runs=3,
+    )
+    results = run_eval(cfg, client=client, judge_client=judge_client)
+    assert results["judge"]["runs"] == 3
+    judge_calls = [
+        r
+        for r in state.requests
+        if "MODEL ÇIKTISI" in r["messages"][-1]["content"]
+    ]
+    assert len(judge_calls) == 6  # 2 tasks x 3 attempts
+    t1 = next(t for t in results["tasks"] if t["id"] == "demo/t1")
+    assert t1["judge"]["score"] == 1.0
+    assert len(t1["judge"]["runs"]) == 3
+    client.close()
+    judge_client.close()
+
+
+def test_run_eval_rejects_bad_judge_runs(dataset_dir, fake_openai):
+    state, base = fake_openai
+    cfg = _run_cfg(dataset_dir, judge_model="j", judge_runs=0)
+    with pytest.raises(Exception, match="judge_runs"):
+        run_eval(cfg, client=OpenAICompatClient(base, api_key="k"))
+
+
+def test_fingerprint_changes_with_judge_runs(dataset_dir):
+    a = _run_cfg(dataset_dir, judge_model="j")
+    b = _run_cfg(dataset_dir, judge_model="j", judge_runs=3)
+    assert a.fingerprint() != b.fingerprint()

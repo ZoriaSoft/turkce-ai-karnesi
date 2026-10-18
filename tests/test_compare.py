@@ -95,3 +95,81 @@ def test_format_compare_text():
     out = format_compare(compare_runs(a, b))
     assert "1 improved" in out and "0 regressed" in out
     assert "McNemar" in out and "c/t2" in out
+
+
+# ---- --checks: per-check verdict flips ---------------------------------------
+
+
+def _run_checks(model, tasks):
+    """tasks: [(id, score, [check dicts])]."""
+    return {
+        "model": model,
+        "label": model,
+        "run_id": "r-" + model,
+        "summary": {"score": sum(s for _, s, _ in tasks) / max(1, len(tasks))},
+        "tasks": [
+            {"id": tid, "category": tid.split("/")[0], "score": s,
+             "checks": cks}
+            for tid, s, cks in tasks
+        ],
+    }
+
+
+def test_compare_checks_reports_flips():
+    a = _run_checks(
+        "A",
+        [
+            ("c/one", 0.5, [{"type": "contains", "passed": True},
+                            {"type": "count", "passed": False}]),
+            ("c/two", 0.0, [{"type": "regex", "passed": False}]),
+        ],
+    )
+    b = _run_checks(
+        "B",
+        [
+            ("c/one", 0.5, [{"type": "contains", "passed": False},
+                            {"type": "count", "passed": True}]),
+            ("c/two", 1.0, [{"type": "regex", "passed": True}]),
+        ],
+    )
+    rep = compare_runs(a, b, include_checks=True)
+    assert rep["n_check_flips"] == 3
+    one = next(r for r in rep["tasks"] if r["id"] == "c/one")
+    assert one["checks"][0]["flip"] == "regress"
+    assert one["checks"][1]["flip"] == "improve"
+    # task-level score unchanged but check verdicts moved
+    assert one["flip"] == "same"
+
+
+def test_compare_checks_off_by_default():
+    a = _run_checks("A", [("c/t", 1.0, [{"type": "x", "passed": True}])])
+    b = _run_checks("B", [("c/t", 0.0, [{"type": "x", "passed": False}])])
+    rep = compare_runs(a, b)
+    assert "n_check_flips" not in rep
+    assert "checks" not in rep["tasks"][0]
+
+
+def test_compare_checks_type_changed_marked():
+    a = _run_checks("A", [("c/t", 0.0, [{"type": "contains", "passed": False}])])
+    b = _run_checks("B", [("c/t", 1.0, [{"type": "regex", "passed": True}])])
+    rep = compare_runs(a, b, include_checks=True)
+    c = rep["tasks"][0]["checks"][0]
+    assert c["type_changed"] is True and c["type"] == "regex"
+
+
+def test_compare_checks_len_mismatch_marked():
+    a = _run_checks("A", [("c/t", 0.0, [{"type": "x", "passed": False}])])
+    b = _run_checks(
+        "B",
+        [("c/t", 1.0, [{"type": "x", "passed": True},
+                       {"type": "y", "passed": True}])],
+    )
+    rep = compare_runs(a, b, include_checks=True)
+    assert rep["tasks"][0]["checks_len_changed"] == [1, 2]
+
+
+def test_format_compare_check_flips():
+    a = _run_checks("A", [("c/t", 0.0, [{"type": "contains", "passed": False}])])
+    b = _run_checks("B", [("c/t", 1.0, [{"type": "contains", "passed": True}])])
+    out = format_compare(compare_runs(a, b, include_checks=True))
+    assert "check flips: 1" in out and "c/t#0" in out and "contains" in out

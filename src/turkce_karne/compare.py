@@ -51,12 +51,27 @@ def mcnemar_pvalue(improvements: int, regressions: int) -> tuple[float, str]:
     return _chi2_sf_1df(chi2), "chi2_cc"
 
 
-def compare_runs(a: dict, b: dict) -> dict:
+def _check_flip(ca: dict, cb: dict) -> str | None:
+    """Verdict flip between two check dicts paired by position.
+
+    Returns None when verdicts agree (or a ``fraction`` moved without a
+    pass/fail change — score deltas, not flips).
+    """
+    pa, pb = bool(ca.get("passed")), bool(cb.get("passed"))
+    if pa == pb:
+        return None
+    return "improve" if pb else "regress"
+
+
+def compare_runs(a: dict, b: dict, *, include_checks: bool = False) -> dict:
     """Compare results dict B against baseline A (B is the 'new' run).
 
     Returns a JSON-serializable report; ``a``/``b`` tasks are paired by
     task id. Tasks present in only one run are listed under
-    ``only_in_*``.
+    ``only_in_*``. With ``include_checks`` each task row also carries a
+    ``checks`` list pairing the two runs' check verdicts by position —
+    a check entry notes its type, pass/fail in A and B, and the flip
+    direction; ``type_changed`` marks spec drift between runs.
     """
     ta, tb = _norm_runs(a, b)
     common = sorted(set(ta) & set(tb))
@@ -64,6 +79,7 @@ def compare_runs(a: dict, b: dict) -> dict:
     improvements = regressions = 0
     deltas: list[float] = []
     by_cat: dict[str, dict] = {}
+    n_check_flips = 0
     for tid in common:
         sa = ta[tid].get("score", 0.0)
         sb = tb[tid].get("score", 0.0)
@@ -85,16 +101,38 @@ def compare_runs(a: dict, b: dict) -> dict:
         agg["a"] += sa
         agg["b"] += sb
         agg["n"] += 1
-        rows.append(
-            {
-                "id": tid,
-                "category": cat,
-                "a": round(sa, 4),
-                "b": round(sb, 4),
-                "delta": round(delta, 4),
-                "flip": flip,
-            }
-        )
+        row = {
+            "id": tid,
+            "category": cat,
+            "a": round(sa, 4),
+            "b": round(sb, 4),
+            "delta": round(delta, 4),
+            "flip": flip,
+        }
+        if include_checks:
+            cks = []
+            ca_list = ta[tid].get("checks") or []
+            cb_list = tb[tid].get("checks") or []
+            for i, (ca, cb) in enumerate(zip(ca_list, cb_list)):
+                cf = _check_flip(ca, cb)
+                if cf is not None:
+                    n_check_flips += 1
+                entry: dict = {
+                    "i": i,
+                    "type": cb.get("type") or ca.get("type"),
+                    "a": bool(ca.get("passed")),
+                    "b": bool(cb.get("passed")),
+                }
+                if cf:
+                    entry["flip"] = cf
+                if ca.get("type") != cb.get("type"):
+                    entry["type_changed"] = True
+                cks.append(entry)
+            if len(ca_list) != len(cb_list):
+                row["checks_len_changed"] = [len(ca_list), len(cb_list)]
+            if cks:
+                row["checks"] = cks
+        rows.append(row)
     p, method = mcnemar_pvalue(improvements, regressions)
     cat_rows = {
         c: {
@@ -108,7 +146,7 @@ def compare_runs(a: dict, b: dict) -> dict:
     # re-sort: flips first (regress, improve, delta), then same
     order = {"regress": 0, "improve": 1, "delta": 2, "same": 3}
     rows.sort(key=lambda r: (order[r["flip"]], -abs(r["delta"]), r["id"]))
-    return {
+    rep = {
         "a": {
             "model": a.get("model"),
             "label": a.get("label"),
@@ -131,6 +169,9 @@ def compare_runs(a: dict, b: dict) -> dict:
         "by_category": cat_rows,
         "tasks": rows,
     }
+    if include_checks:
+        rep["n_check_flips"] = n_check_flips
+    return rep
 
 
 def format_compare(rep: dict) -> str:
@@ -173,4 +214,16 @@ def format_compare(rep: dict) -> str:
             lines.append(
                 f"  {arrow} {r['id']:<44} {r['a'] * 100:5.1f}% -> {r['b'] * 100:5.1f}%"
             )
+    if rep.get("n_check_flips"):
+        lines.append("")
+        lines.append(f"check flips: {rep['n_check_flips']}")
+        for r in rep["tasks"]:
+            for c in r.get("checks", []):
+                if c.get("flip"):
+                    arrow = "↑" if c["flip"] == "improve" else "↓"
+                    lines.append(
+                        f"  {arrow} {r['id']}#{c['i']}"
+                        f" [{c.get('type')}]"
+                        f"{' (type changed)' if c.get('type_changed') else ''}"
+                    )
     return "\n".join(lines)

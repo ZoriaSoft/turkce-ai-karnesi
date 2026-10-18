@@ -25,8 +25,11 @@ TDK imla taraması) puanlanır — aynı uç + aynı veri seti = aynı puan.
 
 İsteğe bağlı ikinci bir model sabit bir rubrikle jüri olabilir:
 `karne run --model X --judge-model Y` (ağırlık `--judge-weight`, varsayılan
-0,4). İki koşuyu karşılaştırmak için: `karne compare a.json b.json` —
-görev bazında fark, iyileşme/gerileme ve McNemar anlamlılık testi.
+0,4; `--judge-runs N` ile her çıktı N kez puanlanıp ölçüt bazında medyan
+alınır — tek puanlık sapmayı azaltır). İki koşuyu karşılaştırmak için:
+`karne compare a.json b.json` — görev bazında fark, iyileşme/gerileme ve
+McNemar anlamlılık testi; `--checks` kontrol bazında geçme/kalma
+değişimlerini de listeler.
 İstem stili değiştirilebilir: `--prompt-style zero|fewshot|cot`.
 
 Detaylar ve veri seti şeması için: [`README.md`](README.md)

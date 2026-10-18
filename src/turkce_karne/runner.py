@@ -74,6 +74,9 @@ class RunConfig:
     # pass ["*"] to judge everything
     judge_categories: list[str] | None = None
     judge_max_tokens: int = 512
+    # N independent judge attempts per response, merged into a
+    # per-criterion median verdict (1 = single verdict)
+    judge_runs: int = 1
     # prompt style: 'zero' (default), 'fewshot' (one exemplar per
     # category), 'cot' (chain-of-thought nudge suffix)
     prompt_style: str = "zero"
@@ -96,6 +99,7 @@ class RunConfig:
             "judge_categories": (
                 sorted(self.judge_categories) if self.judge_categories else None
             ),
+            "judge_runs": self.judge_runs,
             "prompt_style": self.prompt_style,
         }
         blob = json.dumps(d, ensure_ascii=False, sort_keys=True)
@@ -257,6 +261,8 @@ def run_eval(
     if cfg.judge_model:
         if not 0 < cfg.judge_weight <= 1:
             raise ClientError("judge_weight must be in (0, 1]")
+        if cfg.judge_runs < 1 or cfg.judge_runs > 9:
+            raise ClientError("judge_runs must be in 1..9")
         if judge_client is None:
             from .client import client_from_env
 
@@ -293,6 +299,7 @@ def run_eval(
             cfg.judge_model,
             categories=cats,
             max_tokens=cfg.judge_max_tokens,
+            runs=cfg.judge_runs,
         )
 
     started = time.time()
@@ -422,7 +429,7 @@ def run_eval(
         results["judge"] = {
             "model": cfg.judge_model,
             "weight": cfg.judge_weight,
-            "categories": sorted(judge.categories),
+            "runs": cfg.judge_runs,
             "n_judged": len(j_ok),
             "n_judge_errors": len(judged) - len(j_ok),
             "est_cost_usd": (

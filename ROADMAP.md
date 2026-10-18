@@ -49,6 +49,19 @@ repo/directory/remote keep the current name until then.
 - [x] `--dry-run` token/cost estimate (4-chars/token heuristic) +
       style/judge echo in the plan.
 
+
+## Round 4 (done)
+- [x] `--judge-runs N` (1–9): N independent judge attempts per response,
+      per-criterion median verdict, partial-failure tolerance (`n_errors`,
+      `runs` detail in results). Attempts share the wire payload but get
+      distinct cache keys via `GenerationConfig.cache_salt` (key-only,
+      never sent); attempt 0 reuses the plain runs=1 cache entry.
+- [x] `karne compare --checks`: per-check verdict flips paired by
+      position (type, pass/fail in A and B, `type_changed` /
+      `checks_len_changed` spec-drift marks), `n_check_flips` summary,
+      text + `--json` output.
+- [x] Fixed sandbox test recipe (PEP 668 venv) in AGENTS.md.
+
 ## Round 4+ candidates
 - [ ] `karne price-estimate`: superseded — folded into `--dry-run`
       (token + cost estimate). Remaining: richer model-aware output
@@ -60,10 +73,6 @@ repo/directory/remote keep the current name until then.
 - [ ] Multimodal-free "OCR-like" generator: seeded noise injector to
       synthesize more fatura/tutanak inputs deterministically.
 - [ ] Turkish tokenizer-aware length checks (BPE vs word discrepancy note).
-- [ ] `--judge-runs N`: judge each response N times, median verdict
-      (mitigates single-judge variance).
-- [ ] `karne diff --checks`: show per-check verdict flips between two runs
-      (compare currently operates at task level).
 - [ ] Golden-file test for the HTML scorecard (structure, not bytes).
 
 ## Known limits / decisions
@@ -75,3 +84,5 @@ repo/directory/remote keep the current name until then.
   reported as `only_in_*`, not scored.
 - Concurrency is client-side only; deterministic regardless of interleaving
   because cache keys are content-based.
+- `--judge-runs` repeats identical judge payloads; the median mitigates
+  serving-nondeterminism in the judge, not prompt or rubric bias.

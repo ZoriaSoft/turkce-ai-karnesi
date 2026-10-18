@@ -31,6 +31,10 @@ class GenerationConfig:
     temperature: float = 0.0
     max_tokens: int = 2048
     extra: dict = field(default_factory=dict)
+    # cache-only discriminator: joins the cache key but is NEVER sent
+    # on the wire. Used to force N independent judge verdicts for one
+    # identical payload (--judge-runs).
+    cache_salt: str | None = None
 
     def payload(self, messages: list[dict]) -> dict:
         p: dict[str, Any] = {
@@ -47,6 +51,8 @@ def cache_key(gen: GenerationConfig, messages: list[dict]) -> str:
     blob = json.dumps(
         gen.payload(messages), ensure_ascii=False, sort_keys=True
     )
+    if gen.cache_salt:
+        blob += f"\x00salt:{gen.cache_salt}"
     return hashlib.sha256(blob.encode("utf-8")).hexdigest()
 
 

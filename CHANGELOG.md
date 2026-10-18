@@ -74,3 +74,26 @@ Format loosely follows Keep a Changelog; versions are dataset/tool aware.
   pre-round-3 runs.
 - Turkish lexicon for `turkish_share` and the `mi_harmony` stem gate:
   ~170 → ~780 entries.
+
+## [Unreleased] — round 4 (2026-10-18)
+
+### Added
+- `--judge-runs N` (1–9, default 1): the judge grades each response N
+  times and the merged verdict is the per-criterion median, mitigating
+  single-verdict variance. Attempts send identical payloads but get
+  distinct cache keys via `GenerationConfig.cache_salt` (cache-key
+  only, never on the wire); attempt 0 reuses the plain runs=1 cache
+  entry. Partial failures still produce a verdict — `runs` detail and
+  `n_errors` appear in the task's `judge` block; run-level
+  `judge.runs` joins the results JSON and config fingerprint.
+- `karne compare --checks`: per-check verdict flips paired by position
+  inside each shared task (check index, type, pass/fail in A and B,
+  `type_changed` and `checks_len_changed` spec-drift markers) plus a
+  `n_check_flips` total — shows which specific check moved a score,
+  in text and `--json` output.
+- `FakeOpenAIState.responder` hook in tests for stateful per-request
+  canned responses.
+
+### Changed
+- Sandbox test recipe in AGENTS.md now uses a venv (system pip is
+  PEP 668 externally-managed on the Debian 13 sandbox).

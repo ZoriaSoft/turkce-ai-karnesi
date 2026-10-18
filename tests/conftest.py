@@ -23,11 +23,16 @@ class FakeOpenAIState:
         # substring -> canned content; first matching rule wins
         self.rules: list[tuple[str, str]] = []
         self.default_content = "tamam."
+        # optional callable(messages) -> content; overrides rules when set.
+        # Useful for stateful per-request variance (e.g. judge-runs).
+        self.responder = None
 
     def add_rule(self, prompt_substr: str, content: str):
         self.rules.append((prompt_substr, content))
 
     def content_for(self, messages: list[dict]) -> str:
+        if self.responder is not None:
+            return self.responder(messages)
         user = next(
             (m["content"] for m in messages if m.get("role") == "user"), ""
         )

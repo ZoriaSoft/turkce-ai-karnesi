@@ -17,6 +17,10 @@ to the deterministic score. Judge calls reuse the same
 :class:`~turkce_karne.client.OpenAICompatClient` machinery, so caching,
 retries, and rate limits apply; the cache key includes the judge model
 and the graded response text.
+
+``runs`` > 1 (``--judge-runs``) issues N independent attempts with
+distinct cache keys and merges them into a per-criterion median verdict,
+mitigating single-verdict variance.
 """
 
 from __future__ import annotations
@@ -87,7 +91,9 @@ def judge_messages(task: Task, response: str) -> list[dict]:
 @dataclass
 class JudgeResult:
     """One judge verdict. ``score`` is normalized to 0..1; ``None``
-    means the judge call failed or returned unusable JSON."""
+    means the judge call failed or returned unusable JSON. With
+    ``judge_runs > 1`` this is a per-criterion median over independent
+    attempts (each cached under its own salt)."""
 
     score: float | None = None
     error: str | None = None
@@ -97,6 +103,9 @@ class JudgeResult:
     cached: bool = False
     latency_ms: int = 0
     usage: dict | None = None
+    # per-attempt detail, populated only when judge_runs > 1:
+    # [{"score": <raw point total or null>, "error": <str or null>}, ...]
+    runs: list[dict] | None = None
 
     def to_dict(self) -> dict:
         d: dict = {
@@ -112,6 +121,9 @@ class JudgeResult:
             d["cached"] = True
         if self.usage:
             d["usage"] = self.usage
+        if self.runs is not None:
+            d["runs"] = self.runs
+            d["n_errors"] = sum(1 for r in self.runs if r.get("score") is None)
         return d
 
 
@@ -138,8 +150,82 @@ def parse_judge_json(text: str | None) -> tuple[dict | None, str | None, str | N
     return scores, (str(rationale)[:300] if rationale is not None else None), None
 
 
+def _median(xs: list[float]) -> float:
+    """Median: middle value, or mean of the two middle values."""
+    s = sorted(xs)
+    m = len(s) // 2
+    if len(s) % 2:
+        return float(s[m])
+    return (s[m - 1] + s[m]) / 2.0
+
+
+def _sum_usage(usages: list[dict | None]) -> dict | None:
+    """Sum numeric usage fields over attempts; None when nothing seen."""
+    if not any(usages):
+        return None
+    total: dict[str, float] = {}
+    for u in usages:
+        for k, v in (u or {}).items():
+            if isinstance(v, (int, float)) and not isinstance(v, bool):
+                total[k] = total.get(k, 0) + v
+    return total or None
+
+
+def _merge_verdicts(verdicts: list[JudgeResult]) -> JudgeResult:
+    """Merge N judge attempts into one verdict.
+
+    Successful attempts contribute their criterion scores; the merged
+    verdict is the per-criterion median (odd count → middle value, even
+    count → mean of the two middle values). The rationale is taken from
+    the successful attempt closest to the median total. If every attempt
+    failed, the first error propagates so the caller falls back to the
+    deterministic score.
+    """
+    ok = [v for v in verdicts if v.score is not None]
+    run_detail = [
+        {
+            "score": (
+                round(sum(v.scores.values()), 2) if v.score is not None else None
+            ),
+            "error": v.error,
+        }
+        for v in verdicts
+    ]
+    total_cap = sum(CRITERIA.values())
+    if not ok:
+        first = verdicts[0]
+        return JudgeResult(
+            error=first.error or "all judge attempts failed",
+            raw=first.raw,
+            cached=all(v.cached for v in verdicts),
+            latency_ms=sum(v.latency_ms for v in verdicts),
+            usage=_sum_usage([v.usage for v in verdicts]),
+            runs=run_detail if len(verdicts) > 1 else None,
+        )
+    merged_scores = {k: _median([v.scores[k] for v in ok]) for k in CRITERIA}
+    median_total = sum(merged_scores.values())
+    nearest = min(ok, key=lambda v: abs(sum(v.scores.values()) - median_total))
+    return JudgeResult(
+        score=median_total / total_cap,
+        scores=merged_scores,
+        rationale=nearest.rationale,
+        raw=None,
+        cached=all(v.cached for v in verdicts),
+        latency_ms=sum(v.latency_ms for v in verdicts),
+        usage=_sum_usage([v.usage for v in verdicts]),
+        runs=run_detail if len(verdicts) > 1 else None,
+    )
+
+
 class JudgeRunner:
-    """Thin wrapper: judge one task response via the shared client."""
+    """Judge one task response via the shared client.
+
+    ``runs`` > 1 issues N independent attempts (each with a distinct
+    ``cache_salt`` so the attempts can't reuse each other's cache
+    entries) and merges them into a per-criterion median verdict —
+    mitigates single-verdict variance. Partial failures still produce a
+    verdict; only a fully failed set yields ``score=None``.
+    """
 
     def __init__(
         self,
@@ -148,9 +234,11 @@ class JudgeRunner:
         *,
         categories: set[str] | None = None,
         max_tokens: int = 512,
+        runs: int = 1,
     ):
         self.client = client
         self.model = model
+        self.runs = max(1, int(runs))
         raw = (
             set(categories)
             if categories is not None
@@ -165,11 +253,20 @@ class JudgeRunner:
     def applies(self, category: str) -> bool:
         return self.judge_all or category in self.categories
 
-    def judge(self, task: Task, response: str) -> JudgeResult:
-        try:
-            res = self.client.complete(
-                self.gen, judge_messages(task, response)
+    def _judge_once(
+        self, task: Task, response: str, salt: str | None = None
+    ) -> JudgeResult:
+        gen = self.gen
+        if salt is not None:
+            gen = GenerationConfig(
+                model=self.gen.model,
+                temperature=self.gen.temperature,
+                max_tokens=self.gen.max_tokens,
+                extra=dict(self.gen.extra),
+                cache_salt=salt,
             )
+        try:
+            res = self.client.complete(gen, judge_messages(task, response))
         except ClientError as e:
             return JudgeResult(error=f"judge_error: {e}")
         scores, rationale, err = parse_judge_json(res.content)
@@ -192,3 +289,14 @@ class JudgeRunner:
             latency_ms=res.latency_ms,
             usage=res.usage,
         )
+
+    def judge(self, task: Task, response: str) -> JudgeResult:
+        if self.runs == 1:
+            return self._judge_once(task, response)
+        # attempt 0 keeps the salt-free key so a prior runs=1 cache hit
+        # is reused; later attempts get distinct keys via cache_salt.
+        verdicts = [
+            self._judge_once(task, response, None if i == 0 else f"jr-{i}")
+            for i in range(self.runs)
+        ]
+        return _merge_verdicts(verdicts)
