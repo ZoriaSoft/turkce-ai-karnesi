@@ -5,7 +5,7 @@ import json
 import pytest
 
 from turkce_karne.client import OpenAICompatClient
-from turkce_karne.report import render_html, write_html
+from turkce_karne.report import render_html, render_markdown, write_html
 from turkce_karne.runner import RunConfig, load_results, run_eval, save_results
 
 
@@ -323,3 +323,69 @@ def test_html_scorecard_structure(dataset_dir, fake_openai):
     # zero external assets: no remote script/link/img refs
     assert 'src="http' not in html and 'href="http' not in html
     assert "<svg" not in html  # 1 run x 1 category -> chart skipped
+
+
+# ---- round 7: per-check-type stats ----------------------------------------
+
+
+def test_summary_by_check_type(dataset_dir, fake_openai):
+    state, base = fake_openai
+    state.add_rule("Bir sayı yaz", "hiçbir şey")  # contains fails
+    state.add_rule("Cevap: 7", "Cevap: 7")        # both checks pass
+    results = _run(dataset_dir, base, state)
+    bct = results["summary"]["by_check_type"]
+    assert bct["contains"] == {"score": 0.0, "n": 1, "n_fail": 1}
+    assert bct["answer_in"] == {"score": 1.0, "n": 1, "n_fail": 0}
+    assert bct["count"] == {"score": 1.0, "n": 1, "n_fail": 0}
+    # worst-first ordering
+    assert list(bct) == ["contains", "answer_in", "count"] or list(bct)[:1] == ["contains"]
+
+
+def test_html_check_type_table(dataset_dir, fake_openai):
+    state, base = fake_openai
+    state.add_rule("Bir sayı yaz", "hiçbir şey")
+    state.add_rule("Cevap: 7", "Cevap: 7")
+    html = render_html(_run(dataset_dir, base, state))
+    assert "Check types" in html
+    assert ">contains<" in html and "(1 fail)" in html
+
+
+def test_html_check_type_matrix_multi_run():
+    a = {
+        "model": "A",
+        "summary": {"score": 0.5},
+        "tasks": [
+            {"id": "c/1", "category": "c", "score": 1.0,
+             "checks": [{"type": "contains", "passed": True}]},
+        ],
+    }
+    b = {
+        "model": "B",
+        "summary": {"score": 1.0},
+        "tasks": [
+            {"id": "c/1", "category": "c", "score": 0.5,
+             "checks": [{"type": "contains", "passed": False,
+                         "fraction": 0.5}]},
+        ],
+    }
+    html = render_html([a, b])
+    assert "Check types" in html and ">contains<" in html
+    # both run columns rendered (100% for A, 50% for B)
+    assert "100.0%" in html and "50.0%" in html
+    # sparse JSON fallback: same output computed from tasks, no crash
+    assert "(1 fail)" in html
+
+
+def test_markdown_check_type_table():
+    r = {
+        "model": "M",
+        "summary": {"score": 0.5},
+        "tasks": [
+            {"id": "c/1", "category": "c", "score": 0.5,
+             "checks": [{"type": "json_fields", "passed": False,
+                         "fraction": 0.5}]},
+        ],
+    }
+    md = render_markdown(r)
+    assert "### Check types (worst first)" in md
+    assert "| json_fields | 1 | 50.0% (1 fail) |" in md

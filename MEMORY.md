@@ -1,14 +1,16 @@
 # Memory — turkce-ai-karnesi
 
-## State (after round 6, 2026-10-18)
-- 8 rounds planned; 6 done. Suite green on sandbox: 153 tests.
-- New: `turkce_karne/stats.py` seeded cluster-bootstrap → `summary.ci95`
-  + `compare` `delta_ci95`; rep rollups `score_worst_rep`/`best_rep`;
-  `karne report --format md`; `.github/workflows/ci.yml`; smarter
-  `--dry-run` output estimate (count-check targets / difficulty).
-- Next candidates (ROADMAP): per-check-type pass-rate table, >2-run
-  compare, `uv run`/`pipx` quickstart check, more OCR templates,
-  tokenizer-aware length checks.
+## State (after round 7, 2026-10-18)
+- 8 rounds planned; 7 done. Suite green on sandbox: 163 tests.
+- New: `summary.by_check_type` + "Check types" table in HTML/MD
+  scorecards (worst-first, per-run columns; sparse-JSON fallback);
+  `karne compare` takes N files (baseline = file 1, leaderboard +
+  per-pair reports via `compare_many`/`format_multi`); OCR corpus
+  8 → 11 templates (kira sözleşmesi, kargo etiketi, lab sonucu) —
+  dataset 69 → 72 tasks.
+- Next candidates (ROADMAP): `uv`/`pipx` quickstart check, tokenizer-
+  aware length note, compare `--best` auto-baseline, CONTRIBUTING note,
+  de/da morphology subset (still risky).
 
 ## Environment
 - Tests/builds ONLY on sandbox: `cirak-run "python3 -m venv .venv &&

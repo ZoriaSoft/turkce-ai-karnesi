@@ -100,9 +100,10 @@ def build_parser() -> argparse.ArgumentParser:
     hp.add_argument("--format", choices=["html", "md"], default="html")
     hp.add_argument("--title", help="report title")
 
-    cp = sub.add_parser("compare", help="Paired diff of two results JSONs")
-    cp.add_argument("a", help="baseline results JSON")
-    cp.add_argument("b", help="new results JSON")
+    cp = sub.add_parser("compare", help="Paired diff of results JSONs "
+                        "(2+ files; >2 = all vs the first, the baseline)")
+    cp.add_argument("files", nargs="+",
+                    help="baseline results JSON, then run(s) to compare")
     cp.add_argument("--json", action="store_true",
                     help="print machine-readable JSON to stdout")
     cp.add_argument("--checks", action="store_true",
@@ -304,13 +305,26 @@ def cmd_report(args) -> int:
 
 
 def cmd_compare(args) -> int:
-    rep = compare_runs(
-        load_results(args.a), load_results(args.b), include_checks=args.checks
+    if len(args.files) == 1:
+        print("compare: need at least 2 results files", file=sys.stderr)
+        return 2
+    runs = [load_results(p) for p in args.files]
+    if len(runs) == 2:
+        rep = compare_runs(runs[0], runs[1], include_checks=args.checks)
+        print(
+            json.dumps(rep, ensure_ascii=False, indent=2)
+            if args.json
+            else format_compare(rep)
+        )
+        return 0
+    from .compare import compare_many, format_multi
+
+    rep = compare_many(runs, include_checks=args.checks)
+    print(
+        json.dumps(rep, ensure_ascii=False, indent=2)
+        if args.json
+        else format_multi(rep)
     )
-    if args.json:
-        print(json.dumps(rep, ensure_ascii=False, indent=2))
-    else:
-        print(format_compare(rep))
     return 0
 
 

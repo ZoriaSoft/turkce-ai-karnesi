@@ -4,8 +4,10 @@ import pytest
 
 from turkce_karne.compare import (
     _binom_two_sided,
+    compare_many,
     compare_runs,
     format_compare,
+    format_multi,
     mcnemar_pvalue,
 )
 
@@ -235,3 +237,47 @@ def test_format_compare_prints_ci():
     b = _run("B", [("c/1", 1.0), ("c/2", 1.0)])
     text = format_compare(compare_runs(a, b))
     assert "delta 95% CI" in text
+
+
+# ---- round 7: multi-run compare (baseline = first file) -------------------
+
+
+def test_compare_many_leaderboard_and_pairs():
+    a = _run("base", [("c/1", 1.0), ("c/2", 0.0)])
+    b = _run("better", [("c/1", 1.0), ("c/2", 1.0)])
+    c = _run("worse", [("c/1", 0.0), ("c/2", 0.0)])
+    rep = compare_many([a, b, c])
+    assert rep["baseline"]["name"] == "base"
+    assert rep["n_runs"] == 3
+    assert [e["name"] for e in rep["leaderboard"]] == [
+        "better", "base", "worse"]
+    better = rep["leaderboard"][0]
+    assert better["paired_score"] == 1.0
+    assert better["improvements"] == 1 and better["regressions"] == 0
+    assert len(rep["comparisons"]) == 2
+    assert rep["comparisons"][0]["report"]["improvements"] == 1
+
+
+def test_compare_many_needs_two_runs():
+    with pytest.raises(ValueError):
+        compare_many([_run("solo", [("c/1", 1.0)])])
+
+
+def test_compare_many_disjoint_run_still_reported():
+    a = _run("A", [("c/1", 1.0)])
+    b = _run("B", [("other/x", 1.0)])
+    rep = compare_many([a, b])
+    assert rep["comparisons"][0]["report"]["n_common"] == 0
+    b_row = [e for e in rep["leaderboard"] if e["name"] == "B"][0]
+    assert b_row["paired_score"] is None and b_row["n_common"] == 0
+
+
+def test_format_multi_output():
+    a = _run("base", [("c/1", 1.0), ("c/2", 0.0)])
+    b = _run("better", [("c/1", 1.0), ("c/2", 1.0)])
+    c = _run("worse", [("c/1", 0.0), ("c/2", 0.0)])
+    out = format_multi(compare_many([a, b, c]))
+    assert "baseline (A): base" in out
+    assert "leaderboard" in out
+    assert "better" in out and "worse" in out
+    assert "1 improved" in out  # per-pair section keeps compare detail

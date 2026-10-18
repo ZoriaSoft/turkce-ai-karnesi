@@ -3,8 +3,8 @@
 Türkçe'de gerçekten iş gören LLM'leri ölçen bir değerlendirme kiti — özellikle
 insanların fiilen kullandığı ucuz/ücretsiz modeller için.
 
-69 özgün görev (veri seti v1, CC-BY-4.0) 8 kategoride: resmi yazı/dilekçe,
-e-posta, özet, dağınık belgeden alan çıkartımı (fatura/tutanak — 8'i tohumlu
+72 özgün görev (veri seti v1, CC-BY-4.0) 8 kategoride: resmi yazı/dilekçe,
+e-posta, özet, dağınık belgeden alan çıkartımı (fatura/tutanak — 11'i tohumlu
 OCR gürültüsüyle üretilmiş), imla kuralları (de/da, ki, soru eki), yönerge
 takibi, TR↔EN çeviri, akıl yürütme.
 
@@ -31,12 +31,19 @@ alınır — tek puanlık sapmayı azaltır). İki koşuyu karşılaştırmak i�
 `karne compare a.json b.json` — görev bazında fark, iyileşme/gerileme,
 McNemar anlamlılık testi ve ortalama fark için eşleştirilmiş bootstrap
 %95 güven aralığı (`delta_ci95`); `--checks` kontrol bazında geçme/kalma
-değişimlerini de listeler.
+değişimlerini de listeler. Üç veya daha fazla dosya verilirse
+(`karne compare taban.json b.json c.json`) her koşu ilk dosyayla
+eşleştirilir: önce eşleştirilmiş ortalama puana göre bir sıralama tablosu,
+ardından her çift için tam karşılaştırma çıktısı gelir.
 İstem stili değiştirilebilir: `--prompt-style zero|fewshot|cot`. Kararlılığı
 ölçmek için `--repeat N` her görevi N kez gerçekten üretir; özet, tekrarlar
 arasında sonucu değişen görevleri `rep_unstable` olarak listeler ve
 `score_worst_rep`/`score_best_rep` ile dağılımı sınırlar. `summary.ci95`
 ana puana tohumu veriden türetilen küme-bootstrap %95 güven aralığı
 ekler; `karne report --format md` Markdown karne tablosu üretir.
+Kontrol türü kırılımı da görünür: koşu özetinde `by_check_type` (kontrol
+bazında ortalama puan + başarısız sayısı) tutulur ve HTML/Markdown
+karnesinde "en çok hangi kontrol türü düşüyor" tablosu en kötü önde
+olacak şekilde gösterilir.
 
 Detaylar ve veri seti şeması için: [`README.md`](README.md)

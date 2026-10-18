@@ -161,3 +161,28 @@ Format loosely follows Keep a Changelog; versions are dataset/tool aware.
 - `--dry-run` output-token estimate now honors `count` checks with an
   explicit target (`eq`/min+max midpoint × unit factor) and otherwise
   scales with task difficulty, instead of a flat 400-token guess.
+
+## [Unreleased] — round 7 (2026-10-18)
+
+### Added
+- `summary.by_check_type`: per-check-type breakdown in every results
+  JSON — check-level mean score (pass=1.0, fail=partial credit or 0),
+  `n` and `n_fail`, sorted worst-first. The HTML and Markdown scorecards
+  render it as a "Check types" table (per-run columns when several
+  results files are reported together), so "which check types fail
+  most" is one glance. Older/sparse results JSONs still get the table:
+  the renderer falls back to aggregating `tasks[].checks`.
+- `karne compare` accepts 3+ results files: `karne compare base.json
+  b.json c.json` compares every run against the first file (the
+  baseline) and prints a leaderboard (paired mean score over tasks
+  shared with the baseline, delta vs A, McNemar p, n_common) followed
+  by the full per-pair reports. `--json` returns `{baseline, n_runs,
+  leaderboard, comparisons}`; two files keep the exact old output and
+  JSON shape. `compare_many`/`format_multi` in `turkce_karne/compare.py`.
+- Dataset v1: three new OCR-noise templates — `ocr-kira-sozlesme`
+  (kira sözleşmesi), `ocr-kargo-etiket` (cargo label), `ocr-lab-sonuc`
+  (hematology report with reference-range distractors) — 69 → 72 items.
+
+### Changed
+- `karne compare` positional args are now `files...` instead of `a b`;
+  single file exits 2 with a usage error.

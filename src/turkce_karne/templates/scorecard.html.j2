@@ -136,6 +136,38 @@
   </div>
   {% endif %}
 
+  {% if ct_matrix %}
+  <h2>Check types</h2>
+  <div class="panel">
+    <table>
+      <thead><tr>
+        <th>Check type</th><th>n</th>
+        {% for lb in ct_matrix.labels %}<th>{{ lb }}</th>{% endfor %}
+      </tr></thead>
+      <tbody>
+      {% for row in ct_matrix.rows %}
+        <tr>
+          <td>{{ row.type }}</td>
+          <td class="meta">{{ row.n }}</td>
+          {% for i in range(ct_matrix.labels|length) %}
+            {% set c = row.cells.get(i) %}
+            {% if c is not none %}
+            <td class="score">{{ "%.1f"|format(c.score * 100) }}%
+              <span class="bar {{ 'pass' if c.score >= 0.999 else 'partial' if c.score > 0.001 else 'fail' }}"
+                    style="width:{{ (c.score * 60)|round|int }}px"></span>
+              {%- if c.n_fail %}<span class="meta"> ({{ c.n_fail }} fail)</span>{% endif %}
+            </td>
+            {% else %}<td class="meta">—</td>{% endif %}
+          {% endfor %}
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <div class="meta" style="margin-top:6px">check-level mean score —
+      pass=1.0, fail=partial credit or 0; worst types first.</div>
+  </div>
+  {% endif %}
+
   {% for r in runs %}
   <h2>{{ r.label or r.model }}</h2>
   <div class="panel">

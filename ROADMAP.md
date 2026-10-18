@@ -96,16 +96,27 @@ repo/directory/remote keep the current name until then.
 - [x] `--dry-run` output estimate: `count`-check targets or difficulty
       scaling instead of a flat 400.
 
-## Round 6+ candidates
+## Round 7 (done)
+- [x] `summary.by_check_type`: check-level mean score + `n`/`n_fail` per
+      check type (worst-first) in the results JSON; "Check types" table in
+      the HTML + Markdown scorecards (per-run columns for multi-run
+      reports; old JSONs fall back to task-level aggregation).
+- [x] `karne compare` N files: every run vs the first (baseline);
+      leaderboard (paired mean over shared tasks, delta, McNemar p) +
+      full per-pair reports. `{baseline, leaderboard, comparisons}` JSON.
+- [x] OCR templates +3: kira sözleşmesi, kargo etiketi, laboratuvar
+      sonucu (reference-range distractors) — 69 → 72 tasks.
+
+## Round 8 candidates
 - [ ] de/da clitic-vs-suffix: still needs morphology; revisit only with
       a high-precision subset (e.g. after personal pronouns).
 - [ ] `uv run` / `pipx` quickstart verification on a clean env.
 - [ ] Turkish tokenizer-aware length checks (BPE vs word discrepancy note).
-- [ ] More OCR templates beyond 8 (kira sözleşmesi, kargo etiketi,
-      laboratuvar sonucu) once a template style settles.
-- [ ] Per-check-type pass-rate table in the scorecard ("which check
-      types fail most").
-- [ ] `karne compare` for >2 runs (leaderboard deltas vs best).
+- [ ] More OCR templates beyond 11 (hastane sevk, mahkeme kararı,
+      sigorta poliçesi) once a template style settles.
+- [ ] Compare auto-baseline (`--best` flag or `vs` subcommand) — current
+      N-file compare pins file order to file 1.
+- [ ] Final polish: dataset CONTRIBUTING note, README/limits review.
 
 ## Known limits / decisions
 - `json_fields` extracts first balanced `{...}` block; nested braces OK.
@@ -123,3 +134,9 @@ repo/directory/remote keep the current name until then.
 - Bootstrap CIs are percentile-method (2000 resamples), seeded from the
   data — deterministic but not model-aware; tiny n still gives a narrow
   interval that understates real uncertainty (as every CI does at n=5).
+- `by_check_type` mirrors `task_score_value` (pass=1, fail=fraction or 0);
+  the "Check types" table reads `summary.by_check_type` when present and
+  otherwise recomputes from `tasks[].checks`, so old JSONs still render.
+- Multi-run `karne compare` treats file 1 as the baseline; the
+  leaderboard's `paired_score` is each run's mean over tasks it shares
+  with that baseline (not the run's own summary mean).

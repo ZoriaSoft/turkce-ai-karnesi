@@ -120,6 +120,45 @@ def test_compare_cli(tmp_path, capsys):
     assert data["improvements"] == 1
 
 
+def test_compare_cli_single_file_fails(tmp_path, capsys):
+    a = tmp_path / "a.json"
+    a.write_text(json.dumps({"tasks": []}), encoding="utf-8")
+    rc = main(["compare", str(a)])
+    assert rc == 2
+    assert "at least 2" in capsys.readouterr().err
+
+
+def test_compare_cli_three_files(tmp_path, capsys):
+    def _w(path, model, scores):
+        path.write_text(json.dumps({
+            "model": model,
+            "summary": {"score": sum(scores) / len(scores)},
+            "tasks": [
+                {"id": f"c/{i+1}", "category": "c", "score": s}
+                for i, s in enumerate(scores)
+            ],
+        }), encoding="utf-8")
+
+    a, b, c = (tmp_path / n for n in ("a.json", "b.json", "c.json"))
+    _w(a, "base", [1.0, 0.0])
+    _w(b, "better", [1.0, 1.0])
+    _w(c, "worse", [0.0, 0.0])
+    rc = main(["compare", str(a), str(b), str(c)])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "baseline (A): base" in out and "leaderboard" in out
+    assert "better" in out and "worse" in out
+
+    rc = main(["compare", str(a), str(b), str(c), "--json"])
+    assert rc == 0
+    data = json.loads(capsys.readouterr().out)
+    assert data["baseline"]["name"] == "base"
+    assert data["n_runs"] == 3
+    assert [e["name"] for e in data["leaderboard"]] == [
+        "better", "base", "worse"]
+    assert len(data["comparisons"]) == 2
+
+
 def test_report_md_stdout(tmp_path, capsys):
     res = tmp_path / "res.json"
     res.write_text(

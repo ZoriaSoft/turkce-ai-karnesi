@@ -254,3 +254,118 @@ def format_compare(rep: dict) -> str:
                         f"{' (type changed)' if c.get('type_changed') else ''}"
                     )
     return "\n".join(lines)
+
+
+def _run_name(r: dict, fallback: str) -> str:
+    return r.get("label") or r.get("model") or fallback
+
+
+def compare_many(
+    runs: list[dict], *, include_checks: bool = False
+) -> dict:
+    """Compare N runs against the first one (the baseline).
+
+    Returns ``{baseline, n_runs, leaderboard, comparisons}`` where each
+    comparisons entry is the :func:`compare_runs` report for
+    (baseline, that run). Runs that share no task ids with the baseline
+    are still compared — they simply get ``n_common == 0`` and a null
+    McNemar/CI. The leaderboard uses each run's mean score over the
+    tasks it shares with the baseline (not its own summary mean), so
+    rankings stay paired-comparable.
+    """
+    if len(runs) < 2:
+        raise ValueError("compare_many needs at least 2 runs")
+    baseline = runs[0]
+    name = _run_name(
+        baseline,
+        f"run 1 ({baseline.get('run_id') or 'baseline'})",
+    )
+    comparisons = [
+        {
+            "name": _run_name(r, f"run {i + 2}"),
+            "report": compare_runs(baseline, r, include_checks=include_checks),
+        }
+        for i, r in enumerate(runs[1:])
+    ]
+    leader = []
+    for c in comparisons:
+        rep = c["report"]
+        bs = [row["b"] for row in rep["tasks"]]
+        leader.append(
+            {
+                "name": c["name"],
+                "paired_score": (
+                    round(sum(bs) / len(bs), 4) if bs else None
+                ),
+                "mean_delta": rep["mean_delta"],
+                "n_common": rep["n_common"],
+                "improvements": rep["improvements"],
+                "regressions": rep["regressions"],
+                "mcnemar_p": rep["mcnemar"]["p"],
+            }
+        )
+    leader.append(
+        {
+            "name": name,
+            "paired_score": _paired_mean(baseline),
+            "mean_delta": 0.0,
+            "n_common": _n_common(baseline, baseline),
+            "improvements": 0,
+            "regressions": 0,
+            "mcnemar_p": None,
+        }
+    )
+    leader.sort(
+        key=lambda e: (e["paired_score"] is None, -(e["paired_score"] or 0))
+    )
+    return {
+        "baseline": {
+            "name": name,
+            "model": baseline.get("model"),
+            "label": baseline.get("label"),
+            "run_id": baseline.get("run_id"),
+            "score": baseline.get("summary", {}).get("score"),
+        },
+        "n_runs": len(runs),
+        "leaderboard": leader,
+        "comparisons": comparisons,
+    }
+
+
+def _n_common(a: dict, b: dict) -> int:
+    ta, tb = _norm_runs(a, b)
+    return len(set(ta) & set(tb))
+
+
+def _paired_mean(r: dict) -> float | None:
+    scores = [t.get("score", 0.0) for t in r.get("tasks", [])]
+    if not scores:
+        return None
+    return round(sum(scores) / len(scores), 4)
+
+
+def format_multi(rep: dict) -> str:
+    """Human-readable rendering of :func:`compare_many` output."""
+    base = rep["baseline"]
+    lines = [
+        f"baseline (A): {base['name']}  score={base.get('score')}",
+        f"runs: {rep['n_runs']} — every run is compared against A",
+        "",
+        "leaderboard (score = mean over tasks shared with A):",
+    ]
+    w = max(len(e["name"]) for e in rep["leaderboard"])
+    for e in rep["leaderboard"]:
+        ps = e["paired_score"]
+        ps_s = f"{ps * 100:5.1f}%" if ps is not None else "  n/a"
+        p = e["mcnemar_p"]
+        p_s = f"p={p:g}" if p is not None else "   --"
+        mark = " (A)" if e["name"] == base["name"] else ""
+        lines.append(
+            f"  {e['name']:<{w}}  {ps_s}  "
+            f"delta {e['mean_delta'] * 100:+5.1f}pp  "
+            f"{p_s}  n={e['n_common']}{mark}"
+        )
+    for c in rep["comparisons"]:
+        lines += ["", "-" * 60, ""]
+        lines.append(format_compare(c["report"]))
+    return "\n".join(lines)

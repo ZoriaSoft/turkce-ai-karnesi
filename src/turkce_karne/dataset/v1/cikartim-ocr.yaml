@@ -306,3 +306,113 @@ items:
       synthetic OCR-noised document; regenerate via scripts/gen_ocr_tasks.py
       (seed ocr-gider-nota-v1)
 
+  - id: cikartim/ocr-kira-sozlesme
+    category: cikartim
+    difficulty: 4
+    prompt: >-
+      Aşağıdaki metin bozuk bir taramanın (OCR) çıktısıdır; satırlarda okuma
+      hataları olabilir. İstenen alanları metnin İFADE ETTİĞİ değerlerle
+      çıkar ve YALNIZCA JSON yaz (açıklama yok). Alanlar: kiraci, malik,
+      daire_adresi, baslangic, aylik_kira, depozito. Tarihleri YYYY-MM-DD
+      biçiminde, tutarları sayı olarak yaz.
+    input: |
+      KONUT KİRA SÖZLEŞMESİ (fotokopi nüsha)
+
+      Kiraya veren (malik): ORHAN DEMİRTAŞ   TCKN: ****** **21
+      Kiracı            : ELİF SARIKAYA
+      Kiralanan         : cemil topuzlu cad. no:23 d:5 göztepe/istanbul
+      Sözleşme süresi    : 1 (bir) yıl
+      Başlangıç tarihi  : 01.11.2026
+      Aylık  kira bedeli : 27,500.00 (her ayın 5'ine kadar)
+      Depozito          : 55.000,00 TL — elden te5lim alındı
+      Duzenleme tarihi  : 20.10.2026
+      İmza: malik ___ / kiracı ___   Şahit: M. ERCAN
+    expected:
+      kiraci: "Elif Sarıkaya"
+      malik: "Orhan Demirtaş"
+      daire_adresi: "Cemil Topuzlu Cad. No:23 D:5 Göztepe/İSTANBUL"
+      baslangic: "2026-11-01"
+      aylik_kira: 27500.0
+      depozito: 55000.0
+    checks:
+      - type: json_fields
+        strict: true
+      - type: not_contains
+        terms: ["açıklama", "not:"]
+    notes: >-
+      synthetic OCR-noised document; regenerate via scripts/gen_ocr_tasks.py
+      (seed ocr-kira-sozlesme-v1)
+
+  - id: cikartim/ocr-kargo-etiket
+    category: cikartim
+    difficulty: 3
+    prompt: >-
+      Aşağıdaki metin bozuk bir taramanın (OCR) çıktısıdır; satırlarda okuma
+      hataları olabilir. İstenen alanları metnin İFADE ETTİĞİ değerlerle
+      çıkar ve YALNIZCA JSON yaz (açıklama yok). Alanlar: gonderi_no, alici,
+      sehir, agirlik_kg, odeme_tipi. Tarihleri YYYY-MM-DD biçiminde,
+      tutarları sayı olarak yaz.
+    input: |
+      ANADOLU KARGO - GÖNDERİ ETİKETI
+         Gönderi No  : YZK-8821-4607    TAKİP: YZK.CO/G/YZK-8821-4607
+      Alıcı      : Nurgül Aksoy
+      ADRES      : ORTAHİSAR MAH. UZUN SK. NO:8 trabzon
+      Gönderen   : Şen Pazarlama - İstanbul/Avcılar
+       Agırlık    : 2.40 kg   Desi: 3,1
+      Ödeme tipi : KAPIDA_ODEME (tahsi1atlı 184,90 TL)
+      Barkod      :||| YZK-8821-4607 |||
+      Uyarı      : kırılabilir   bu yüzey üste gelecek
+    expected:
+      gonderi_no: "YZK-8821-4607"
+      alici: "Nurgül Aksoy"
+      sehir: "Trabzon"
+      agirlik_kg: 2.4
+      odeme_tipi: "KAPIDA_ODEME"
+    checks:
+      - type: json_fields
+        strict: true
+      - type: not_contains
+        terms: ["açıklama", "not:"]
+    notes: >-
+      synthetic OCR-noised document; regenerate via scripts/gen_ocr_tasks.py
+      (seed ocr-kargo-etiket-v1)
+
+  - id: cikartim/ocr-lab-sonuc
+    category: cikartim
+    difficulty: 5
+    prompt: >-
+      Aşağıdaki metin bozuk bir taramanın (OCR) çıktısıdır; satırlarda okuma
+      hataları olabilir. İstenen alanları metnin İFADE ETTİĞİ değerlerle
+      çıkar ve YALNIZCA JSON yaz (açıklama yok). Alanlar: hasta, tarih, hgb,
+      hct, plt, wbc. Tarihleri YYYY-MM-DD biçiminde, tutarları sayı olarak
+      yaz.
+    input: |
+      ŞEHİR HASTANESİ   HEMATOLOJİ LABORATUVAR SONUCU
+      Barkod: LAB-2026-7741     Protokol : H-99120
+      Hasta: veysel karaca  (erkek, 54)
+      Örnek alım: 0B:35    Kabul: 09:10
+      Rapor tarihi: 14.10.2026
+      TEST           SONUC    BİRİM     REFERANS
+
+      WBC             7,30    10e3/uL   4,0-10,0
+      HGB            14,20    g/dL      12,0-16,0
+      HCT             42,80    %         37,0-47,0
+      PLT            241    10e3/uL   150-400
+      LYM%            28,4    %         20-40
+      Onay: Uzm. Dr. E. TUNA — elektronik imza
+    expected:
+      hasta: "Veysel Karaca"
+      tarih: "2026-10-14"
+      hgb: 14.2
+      hct: 42.8
+      plt: 241
+      wbc: 7.3
+    checks:
+      - type: json_fields
+        required: ["hasta", "tarih", "hgb"]
+      - type: not_contains
+        terms: ["açıklama", "not:"]
+    notes: >-
+      synthetic OCR-noised document; regenerate via scripts/gen_ocr_tasks.py
+      (seed ocr-lab-sonuc-v1)
+

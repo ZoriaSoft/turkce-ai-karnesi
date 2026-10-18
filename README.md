@@ -34,14 +34,14 @@ per-task expandable responses.
 
 ## What gets tested
 
-69 original tasks (dataset v1, CC-BY-4.0) across 8 categories:
+72 original tasks (dataset v1, CC-BY-4.0) across 8 categories:
 
 | Category      | What it measures                                   |
 |---------------|----------------------------------------------------|
 | `resmi-yazi`  | Dilekçe format: kurum → Sayın → metin → tarih/imza |
 | `eposta`      | Konu: line, greeting, closing                      |
 | `ozet`        | Summaries under hard word/sentence budgets         |
-| `cikartim`    | Field extraction (JSON) from OCR-like fatura/tutanak — 8 of them generated with seeded OCR noise (`scripts/gen_ocr_tasks.py`) |
+| `cikartim`    | Field extraction (JSON) from OCR-like fatura/tutanak — 11 of them generated with seeded OCR noise (`scripts/gen_ocr_tasks.py`) |
 | `imla`        | de/da, ki, soru eki mi/mı, bitişik yazım           |
 | `yonerge`     | Strict format: prefixes, line counts, no dots      |
 | `ceviri`      | TR↔EN content-word accuracy                        |
@@ -102,6 +102,7 @@ karne run --model M [--tasks id1,id2] [--sample 10 --seed 7]
 karne report a.json b.json --out compare.html   # multi-model scorecard
 karne report a.json --format md                 # Markdown table (stdout or --out)
 karne compare a.json b.json [--json] [--checks]  # paired diff + flips + delta CI
+karne compare base.json b.json c.json           # N runs: all vs first file
 ```
 
 Useful flags: `--dry-run` prints the selection plus a rough token/cost
@@ -150,6 +151,19 @@ files always print the same interval).
 verdict flips (check position, type, pass/fail in A and B) — a task
 score can move because one specific check flipped; `type_changed` marks
 check-spec drift between the two runs.
+
+With 3+ files (`karne compare base.json b.json c.json ...`), every run is
+compared against the first file (the baseline): output starts with a
+leaderboard (paired mean score over tasks shared with the baseline,
+delta vs A, McNemar p) followed by the full per-pair reports; `--json`
+returns `{baseline, leaderboard, comparisons}`.
+
+The scorecard also breaks scores down by check type: every run's
+summary carries `by_check_type` (check-level mean — pass=1.0,
+fail=partial credit or 0, plus `n` and `n_fail`), and the HTML/Markdown
+report renders a worst-first "Check types" table so "which check types
+fail most" is one glance — the same table shows per-run columns when
+several results JSONs are reported together.
 
 ## Dataset
 

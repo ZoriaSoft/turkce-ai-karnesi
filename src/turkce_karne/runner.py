@@ -384,6 +384,28 @@ def run_eval(
         c: {"score": round(sum(v) / len(v), 4), "n": len(v)}
         for c, v in sorted(cat_sums.items())
     }
+    # which check types fail most: same scoring rule as task_score_value
+    # (pass = 1.0, fail = partial fraction or 0)
+    ctype_sums: dict[str, list[float]] = {}
+    ctype_fails: dict[str, int] = {}
+    for s in scores:
+        for c in s.checks:
+            ctype_sums.setdefault(c.type, []).append(
+                1.0 if c.passed else max(0.0, c.fraction or 0.0)
+            )
+            ctype_fails[c.type] = ctype_fails.get(c.type, 0) + (
+                0 if c.passed else 1
+            )
+    by_check_type = {
+        t: {
+            "score": round(sum(v) / len(v), 4),
+            "n": len(v),
+            "n_fail": ctype_fails[t],
+        }
+        for t, v in sorted(
+            ctype_sums.items(), key=lambda kv: sum(kv[1]) / len(kv[1])
+        )
+    }
     tokens_in = sum(
         (s.usage or {}).get("prompt_tokens", 0)
         + (s.usage or {}).get("input_tokens", 0)
@@ -449,6 +471,7 @@ def run_eval(
             "n": n,
             "errors": sum(1 for s in scores if s.error),
             "by_category": by_cat,
+            "by_check_type": by_check_type,
             "elapsed_ms": elapsed_ms,
             "tokens_in": tokens_in or None,
             "tokens_out": tokens_out or None,
