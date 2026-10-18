@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ title }}</title>
+<style>
+  :root {
+    --bg: #0f1115; --panel: #171a21; --ink: #e8e9ec; --muted: #9aa1ad;
+    --ok: #35c46f; --warn: #e0b53c; --bad: #e4574c; --line: #262b35;
+    --accent: #4c9be0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 22px; margin: 0 0 4px; font-weight: 600; }
+  h2 { font-size: 15px; margin: 28px 0 10px; color: var(--muted);
+       text-transform: uppercase; letter-spacing: .08em; font-weight: 600; }
+  .sub { color: var(--muted); font-size: 13px; }
+  .panel { background: var(--panel); border: 1px solid var(--line);
+           border-radius: 10px; padding: 18px 20px; margin-top: 16px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; font-size: 12px;
+       text-transform: uppercase; letter-spacing: .05em; }
+  tr:last-child td { border-bottom: 0; }
+  .score { font-weight: 700; }
+  .bar { display: inline-block; height: 8px; border-radius: 4px;
+         vertical-align: middle; margin-left: 8px; min-width: 2px; }
+  .bar.pass { background: var(--ok); } .bar.partial { background: var(--warn); }
+  .bar.fail, .bar.error { background: var(--bad); }
+  .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%;
+         margin-right: 7px; vertical-align: middle; }
+  .dot.pass { background: var(--ok); } .dot.partial { background: var(--warn); }
+  .dot.fail, .dot.error { background: var(--bad); }
+  details { margin: 2px 0; }
+  summary { cursor: pointer; list-style: none; }
+  summary::-webkit-details-marker { display: none; }
+  summary .tid { color: var(--accent); }
+  .resp { white-space: pre-wrap; word-break: break-word; color: var(--muted);
+          background: #10131a; border: 1px solid var(--line);
+          border-radius: 6px; padding: 10px 12px; margin: 8px 0;
+          font-size: 13px; max-height: 280px; overflow: auto; }
+  .checks { font-size: 12.5px; color: var(--muted); margin: 4px 0 10px; }
+  .checks span { margin-right: 14px; }
+  .ck-ok { color: var(--ok); } .ck-no { color: var(--bad); }
+  .meta { color: var(--muted); font-size: 12px; }
+  .err { color: var(--bad); font-size: 13px; }
+  .kv { display: grid; grid-template-columns: repeat(auto-fit,minmax(160px,1fr));
+        gap: 8px 20px; font-size: 13px; }
+  .kv div b { display: block; color: var(--muted); font-size: 11px;
+              text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>{{ title }}</h1>
+  <div class="sub">turkce-karne — Turkish LLM evaluation scorecard</div>
+
+  <h2>Leaderboard</h2>
+  <div class="panel">
+    <table>
+      <thead><tr>
+        <th>#</th><th>Model</th><th>Score</th><th>Tasks</th><th>Errors</th>
+        <th>Cost est.</th><th>Time</th>
+      </tr></thead>
+      <tbody>
+      {% for r in runs %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ r.label or r.model }}</td>
+          <td class="score">{{ r.summary._pct }}
+            <span class="bar {{ 'pass' if r.summary.score >= 0.999 else 'partial' if r.summary.score > 0.001 else 'fail' }}"
+                  style="width:{{ (r.summary.score * 120)|round|int }}px"></span></td>
+          <td>{{ r.summary.n }}</td>
+          <td>{{ r.summary.errors }}</td>
+          <td>{% if r.summary.est_cost_usd is not none %}${{ "%.4f"|format(r.summary.est_cost_usd) }}{% else %}—{% endif %}</td>
+          <td>{{ "%.1f"|format(r.summary.elapsed_ms/1000) }}s</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% for r in runs %}
+  <h2>{{ r.label or r.model }}</h2>
+  <div class="panel">
+    <div class="kv">
+      <div><b>Score</b>{{ r.summary._pct }} ({{ r.summary.n }} tasks)</div>
+      <div><b>Dataset</b>v{{ r.dataset.version }} · sha {{ r.dataset.sha256[:12] }}</div>
+      <div><b>Fingerprint</b>{{ r.config_fingerprint }}</div>
+      <div><b>Tokens</b>in {{ r.summary.tokens_in or 0 }} · out {{ r.summary.tokens_out or 0 }}</div>
+      <div><b>Cache hits</b>{{ r.summary.cache_hits }}</div>
+      <div><b>Run</b>{{ r.run_id }} · tool v{{ r.tool_version }}</div>
+    </div>
+    <table style="margin-top:14px">
+      <thead><tr><th>Category</th><th>Score</th><th>n</th></tr></thead>
+      <tbody>
+      {% for cat, cs in r.summary.by_category.items() %}
+        <tr>
+          <td>{{ cat }}</td>
+          <td class="score">{{ cs._pct }}
+            <span class="bar {{ 'pass' if cs.score >= 0.999 else 'partial' if cs.score > 0.001 else 'fail' }}"
+                  style="width:{{ (cs.score * 120)|round|int }}px"></span></td>
+          <td>{{ cs.n }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Tasks</h2>
+  <div class="panel">
+    {% for t in r.tasks %}
+    <details>
+      <summary>
+        <span class="dot {{ t._state }}"></span>
+        <span class="tid">{{ t.id }}</span>
+        <span class="meta"> — {{ "%.0f"|format(t.score * 100) }}%
+          {% if t.cached %} · cached{% endif %}
+          {% if t.retries %} · {{ t.retries }} retries{% endif %}
+          · {{ t.latency_ms }}ms
+        </span>
+      </summary>
+      <div class="checks">
+        {% for c in t.checks %}
+        <span class="{{ 'ck-ok' if c._state == 'pass' else 'ck-no' }}">
+          {{ '✓' if c._state == 'pass' else '✗' }} {{ c.type }}
+          {%- if c.fraction is defined and c.fraction != 1 %} ({{ "%.0f"|format(c.fraction*100) }}%){% endif %}
+        </span>
+        {% endfor %}
+      </div>
+      {% if t.error %}<div class="err">error: {{ t.error }}</div>{% endif %}
+      {% if t.response %}<div class="resp">{{ t.response }}</div>{% endif %}
+      {% if t.checks %}
+      <div class="checks">
+        {% for c in t.checks %}
+          {% if c.detail and c._state == 'fail' %}
+          <div>{{ c.type }}: {{ c.detail | tojson }}</div>
+          {% endif %}
+        {% endfor %}
+      </div>
+      {% endif %}
+    </details>
+    {% endfor %}
+  </div>
+  {% endfor %}
+
+  <p class="meta" style="margin-top:32px">
+    Generated by turkce-karne. Deterministic checks only; no human or LLM
+    judging is applied in this scorecard.
+  </p>
+</div>
+</body>
+</html>

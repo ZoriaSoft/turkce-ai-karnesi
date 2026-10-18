@@ -1,0 +1,293 @@
+"""Run the eval: tasks -> model -> deterministic checks -> results dict."""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import random
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from typing import Iterable
+
+from . import __version__
+from .checks import evaluate_check, task_score_value
+from .client import (
+    FileCache,
+    GenerationConfig,
+    OpenAICompatClient,
+    estimate_cost_usd,
+)
+from .dataset import (
+    categories,
+    dataset_digest,
+    items_digest,
+    load_dataset,
+    resolve_dataset_dir,
+)
+from .errors import ClientError
+from .model import CheckResult, Task, TaskScore
+
+DEFAULT_SYSTEM = (
+    "Sen yardımcı bir asistansın. Kullanıcının yönergesini aynen uygula; "
+    "istenen biçime harfiyen uy."
+)
+
+# keys excluded from the reproducibility fingerprint (secrets/perf only)
+_FP_EXCLUDE = {"api_key", "cache", "concurrency", "rpm", "timeout", "out", "label"}
+
+
+@dataclass
+class RunConfig:
+    model: str
+    base_url: str | None = None
+    api_key: str | None = None
+    dataset_path: str | None = None
+    version: str = "v1"
+    categories: list[str] | None = None
+    task_ids: list[str] | None = None
+    sample: int | None = None
+    seed: int = 42
+    repeat: int = 1
+    temperature: float = 0.0
+    max_tokens: int = 2048
+    system_prompt: str = DEFAULT_SYSTEM
+    concurrency: int = 4
+    rpm: float | None = None
+    cache_dir: str | None = None
+    timeout: float = 60.0
+    max_retries: int = 4
+    label: str | None = None
+    run_id: str | None = None
+
+    def fingerprint(self) -> str:
+        """sha256 over the config knobs that affect results (no secrets)."""
+        d = {
+            "model": self.model,
+            "dataset_version": self.version,
+            "categories": sorted(self.categories) if self.categories else None,
+            "task_ids": sorted(self.task_ids) if self.task_ids else None,
+            "sample": self.sample,
+            "seed": self.seed,
+            "repeat": self.repeat,
+            "temperature": self.temperature,
+            "max_tokens": self.max_tokens,
+            "system_prompt": self.system_prompt,
+        }
+        blob = json.dumps(d, ensure_ascii=False, sort_keys=True)
+        return hashlib.sha256(blob.encode()).hexdigest()[:16]
+
+
+def select_tasks(tasks: list[Task], cfg: RunConfig) -> list[Task]:
+    sel = list(tasks)
+    if cfg.categories:
+        want = set(cfg.categories)
+        sel = [t for t in sel if t.category in want]
+    if cfg.task_ids:
+        want_ids = set(cfg.task_ids)
+        sel = [t for t in sel if t.id in want_ids]
+    sel.sort(key=lambda t: t.id)
+    if cfg.sample and cfg.sample < len(sel):
+        rng = random.Random(cfg.seed)
+        sel = sorted(rng.sample(sel, cfg.sample), key=lambda t: t.id)
+    if cfg.repeat > 1:
+        sel = [t for t in sel for _ in range(cfg.repeat)]
+    return sel
+
+
+def _messages(task: Task, system: str) -> list[dict]:
+    user = task.prompt if task.input is None else f"{task.prompt}\n\n{task.input}"
+    return [
+        {"role": "system", "content": system},
+        {"role": "user", "content": user},
+    ]
+
+
+def _score_one(
+    client: OpenAICompatClient,
+    gen: GenerationConfig,
+    task: Task,
+    system: str,
+) -> TaskScore:
+    try:
+        res = client.complete(gen, _messages(task, system))
+    except ClientError as e:
+        return TaskScore(
+            id=task.id, category=task.category, score=0.0, error=str(e)
+        )
+    content = res.content
+    if content is None:
+        return TaskScore(
+            id=task.id,
+            category=task.category,
+            score=0.0,
+            error="empty_response",
+            cached=res.cached,
+            latency_ms=res.latency_ms,
+            retries=res.retries,
+            usage=res.usage,
+        )
+    try:
+        results: list[CheckResult] = [
+            evaluate_check(c, content, task) for c in task.checks
+        ]
+    except Exception as e:  # dataset spec bug surfaced at run time
+        return TaskScore(
+            id=task.id,
+            category=task.category,
+            score=0.0,
+            response=content,
+            error=f"check_error: {e}",
+            cached=res.cached,
+            latency_ms=res.latency_ms,
+            retries=res.retries,
+            usage=res.usage,
+        )
+    return TaskScore(
+        id=task.id,
+        category=task.category,
+        score=task_score_value(results),
+        response=content,
+        checks=results,
+        cached=res.cached,
+        latency_ms=res.latency_ms,
+        retries=res.retries,
+        usage=res.usage,
+    )
+
+
+def run_eval(
+    cfg: RunConfig, client: OpenAICompatClient | None = None
+) -> dict:
+    """Execute the run and return the serializable results dict."""
+    base = resolve_dataset_dir(cfg.dataset_path)
+    tasks = load_dataset(base, version=cfg.version)
+    selected = select_tasks(tasks, cfg)
+    if not selected:
+        raise ClientError("no tasks selected (check --tasks/--categories/--sample)")
+
+    cache = FileCache(cfg.cache_dir)
+    gen = GenerationConfig(
+        model=cfg.model,
+        temperature=cfg.temperature,
+        max_tokens=cfg.max_tokens,
+    )
+    own_client = client is None
+    if own_client:
+        from .client import client_from_env
+
+        client = client_from_env(
+            base_url=cfg.base_url,
+            api_key=cfg.api_key,
+            rpm=cfg.rpm,
+            timeout=cfg.timeout,
+            max_retries=cfg.max_retries,
+            cache=cache,
+        )
+    else:
+        client.cache = cache
+    started = time.time()
+    scores: list[TaskScore] = []
+    if cfg.concurrency > 1 and len(selected) > 1:
+        with ThreadPoolExecutor(max_workers=cfg.concurrency) as pool:
+            futs = {
+                pool.submit(_score_one, client, gen, t, cfg.system_prompt): i
+                for i, t in enumerate(selected)
+            }
+            tmp: dict[int, TaskScore] = {}
+            for fut in as_completed(futs):
+                tmp[futs[fut]] = fut.result()
+            scores = [tmp[i] for i in range(len(selected))]
+    else:
+        scores = [
+            _score_one(client, gen, t, cfg.system_prompt) for t in selected
+        ]
+    elapsed_ms = int((time.time() - started) * 1000)
+    if own_client:
+        client.close()
+
+    per_task = [s.to_dict() for s in scores]
+    n = len(scores)
+    mean = sum(s.score for s in scores) / n if n else 0.0
+    cat_sums: dict[str, list[float]] = {}
+    for s in scores:
+        cat_sums.setdefault(s.category, []).append(s.score)
+    by_cat = {
+        c: {"score": round(sum(v) / len(v), 4), "n": len(v)}
+        for c, v in sorted(cat_sums.items())
+    }
+    tokens_in = sum(
+        (s.usage or {}).get("prompt_tokens", 0)
+        + (s.usage or {}).get("input_tokens", 0)
+        for s in scores
+    )
+    tokens_out = sum(
+        (s.usage or {}).get("completion_tokens", 0)
+        + (s.usage or {}).get("output_tokens", 0)
+        for s in scores
+    )
+    cost = estimate_cost_usd(
+        cfg.model, {"prompt_tokens": tokens_in, "completion_tokens": tokens_out}
+    )
+    results = {
+        "format": "turkce-karne/v1",
+        "tool_version": __version__,
+        "run_id": cfg.run_id
+        or datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ"),
+        "label": cfg.label,
+        "model": cfg.model,
+        "dataset": {
+            "version": cfg.version,
+            "sha256": dataset_digest(base, version=cfg.version),
+            "items_sha256": items_digest(tasks),
+            "n_items_total": len(tasks),
+            "n_run": n,
+            "categories": categories(tasks),
+        },
+        "config_fingerprint": cfg.fingerprint(),
+        "config": {
+            "temperature": cfg.temperature,
+            "max_tokens": cfg.max_tokens,
+            "seed": cfg.seed,
+            "sample": cfg.sample,
+            "repeat": cfg.repeat,
+            "categories": cfg.categories,
+            "task_ids": cfg.task_ids,
+        },
+        "summary": {
+            "score": round(mean, 4),
+            "n": n,
+            "errors": sum(1 for s in scores if s.error),
+            "by_category": by_cat,
+            "elapsed_ms": elapsed_ms,
+            "tokens_in": tokens_in or None,
+            "tokens_out": tokens_out or None,
+            "est_cost_usd": round(cost, 6) if cost is not None else None,
+            "cache_hits": sum(1 for s in scores if s.cached),
+        },
+        "tasks": per_task,
+    }
+    return results
+
+
+def save_results(results: dict, out_path) -> None:
+    from pathlib import Path
+
+    p = Path(out_path)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(
+        json.dumps(results, ensure_ascii=False, indent=2, sort_keys=False)
+        + "\n",
+        encoding="utf-8",
+    )
+
+
+def load_results(path) -> dict:
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def merge_runs(runs: Iterable[dict]) -> list[dict]:
+    """Sort multi-run records for the compare/report view."""
+    return sorted(runs, key=lambda r: r.get("summary", {}).get("score", 0), reverse=True)

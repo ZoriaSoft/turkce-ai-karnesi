@@ -1,0 +1,68 @@
+# Özet — Turkish summarization with hard constraints.
+items:
+  - id: ozet/veli-duyurusu
+    category: ozet
+    difficulty: 1
+    prompt: >-
+      Aşağıdaki duyuruyu en fazla 25 kelimeyle Türkçe özetle.
+      ---
+      Okulumuzun yıllık bilim şenliği 24 Ekim Cuma günü 10:00-15:00 arasında
+      yapılacaktır. Tüm veliler davetlidir. Öğrenciler projelerini
+      spor salonunda sergileyecektir. Katılım için öğretmenlere bilgi
+      verilmesi yeterlidir. Servis saatleri normal düzende işleyecektir.
+    checks:
+      - type: count
+        unit: words
+        max: 25
+      - type: contains
+        terms: ["bilim", "şenlik"]
+      - type: turkish_share
+        min: 0.6
+
+  - id: ozet/iade-politikasi
+    category: ozet
+    difficulty: 2
+    prompt: >-
+      Aşağıdaki iade politikasını iki cümleyi geçmeyecek şekilde özetle.
+      ---
+      Müşterilerimiz satın aldıkları ürünleri, fatura tarihinden itibaren 14
+      gün içinde, ürünün kullanılmamış ve ambalajının bozulmamış olması
+      koşuluyla iade edebilir. İade edilen ürünlerin kargo ücreti müşteriye
+      aittir. İade tutarı, ürün depoya ulaştıktan sonra 7 iş günü içinde
+      müşterinin ödeme yaptığı karta iade edilir. Elektronik ürünlerde
+      iade süresi 7 gündür. Hediye çeki ile alınan ürünlerde nakit iadesi
+      yapılmaz, yalnızca değişim uygulanır.
+    checks:
+      - type: count
+        unit: sentences
+        max: 2
+      - type: contains
+        terms: ["14 gün"]
+      - type: turkish_share
+        min: 0.6
+
+  - id: ozet/haber
+    category: ozet
+    difficulty: 2
+    prompt: >-
+      Aşağıdaki haberi tek cümlede özetle.
+      ---
+      Ege Üniversitesi araştırmacıları, İzmir Körfezi'nde üç yıl süren
+      çalışmaların ardından körfezdeki kirlilik oranının yüzde 18 azaldığını
+      açıkladı. Proje kapsamında 120 noktadan düzenli su örnekleri alındı.
+      Araştırma ekibi, azalmanın arıtma tesisi yatırımları ve sanayi
+      denetimlerinin sıkılaşmasıyla ilişkili olduğunu belirtti. Sonuçlar
+      Çevre Bakanlığı ile paylaşıldı ve önümüzdeki yıl aynı ölçümler
+      Akdeniz'de de tekrarlanacak.
+    checks:
+      - type: count
+        unit: sentences
+        eq: 1
+      - type: contains
+        terms: ["kirlilik", "azald"]
+        mode: regex
+      - type: count
+        unit: words
+        min: 8
+      - type: turkish_share
+        min: 0.6

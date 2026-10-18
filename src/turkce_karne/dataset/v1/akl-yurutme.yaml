@@ -1,0 +1,36 @@
+# Akıl yürütme — Turkish word problems with a single verifiable answer.
+items:
+  - id: akl-yurutme/haftalik-saat
+    category: akl-yurutme
+    difficulty: 1
+    prompt: >-
+      Bir çalışan hafta içi her gün 8 saat, cumartesi 4 saat çalışıyor ve pazar
+      günü izinli. Haftalık toplam çalışma süresi kaç saat? Son satırda
+      yalnızca "Cevap: X" yaz.
+    checks:
+      - type: answer_in
+        answers: ["Cevap: 44", "Cevap: 44 saat", "re:Cevap:\\s*44\\b"]
+      - type: contains
+        terms: ["44"]
+
+  - id: akl-yurutme/not-ortalamasi
+    category: akl-yurutme
+    difficulty: 2
+    prompt: >-
+      Üç sınav notu 70, 80 ve 90 ise ortalama kaçtır? Kısaca açıkla, son
+      satırda "Cevap: X" yaz.
+    checks:
+      - type: answer_in
+        answers: ["Cevap: 80", "Cevap: 80.", "re:Cevap:\\s*80\\b"]
+      - type: contains
+        terms: ["70", "80", "90"]
+
+  - id: akl-yurutme/yas
+    category: akl-yurutme
+    difficulty: 3
+    prompt: >-
+      Ayşe, kardeşinden 6 yaş büyük. 10 yıl sonra yaşları toplamı 50 olacak.
+      Ayşe bugün kaç yaşında? Son satırda "Cevap: X" yaz.
+    checks:
+      - type: answer_in
+        answers: ["Cevap: 18", "Cevap: 18 yaşında", "re:Cevap:\\s*18\\b"]

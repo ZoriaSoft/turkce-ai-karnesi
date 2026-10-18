@@ -1,0 +1,78 @@
+# Yönerge — strict instruction following (format over content).
+items:
+  - id: yonerge/madde-madde
+    category: yonerge
+    difficulty: 2
+    prompt: >-
+      Çamaşır yıkamanın 3 temel adımını yaz. Kurallar:
+      - Her satır "- " (tire boşluk) ile başlasın.
+      - Tam olarak 3 madde olsun.
+      - Her madde en fazla 6 kelime.
+      - Başka hiçbir metin yazma.
+    checks:
+      - type: only_lines_with_prefix
+        prefix: "- "
+        count: 3
+      - type: count
+        unit: lines
+        eq: 3
+      - type: every_line_matches
+        pattern: "- .{1,40}"
+
+  - id: yonerge/numarali-liste
+    category: yonerge
+    difficulty: 1
+    prompt: >-
+      Kahvaltı hazırlığının 4 adımını numaralı liste halinde yaz
+      ("1." "2." "3." "4." ile başlayan satırlar). Başlık veya açıklama
+      ekleme.
+    checks:
+      - type: every_line_matches
+        pattern: "^[1-4]\\.\\s+\\S"
+        count: 4
+      - type: count
+        unit: lines
+        eq: 4
+
+  - id: yonerge/tek-kelime
+    category: yonerge
+    difficulty: 1
+    prompt: >-
+      Aşağıdaki cümledeki kalem türünü söyle. YALNIZCA tek kelime yaz
+      (ör: isim/fiil/sıfat/zamir/zarflar).
+      "Kediler bahçede sessizce yürüdü."
+      Hangi kelime zarf? Yalnızca o kelimeyi yaz.
+    checks:
+      - type: answer_in
+        answers: ["sessizce", "sessizce."]
+      - type: count
+        unit: words
+        eq: 1
+
+  - id: yonerge/bes-satir
+    category: yonerge
+    difficulty: 3
+    prompt: >-
+      Mercimek çorbası için 5 malzeme yaz. Her malzeme ayrı satırda olsun ve
+      her satır "malzeme: " önekiyle başlasın. Başka metin yok.
+    checks:
+      - type: only_lines_with_prefix
+        prefix: "malzeme: "
+        count: 5
+
+  - id: yonerge/konu-satiri
+    category: yonerge
+    difficulty: 2
+    prompt: >-
+      Proje gecikmesi hakkında yöneticine yazacağın e-posta için yalnızca bir
+      konu satırı üret. En fazla 8 kelime. Nokta koyma.
+    checks:
+      - type: count
+        unit: words
+        max: 8
+      - type: count
+        unit: lines
+        eq: 1
+      - type: not_contains
+        terms: ["\\.$"]
+        mode: regex

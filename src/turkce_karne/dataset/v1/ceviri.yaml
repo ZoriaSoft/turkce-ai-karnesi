@@ -1,0 +1,53 @@
+# Çeviri — TR<->EN with content-word accuracy checks.
+items:
+  - id: ceviri/tr-en-urun
+    category: ceviri
+    difficulty: 1
+    prompt: >-
+      Aşağıdaki cümleyi İngilizceye çevir. Yalnızca çeviriyi yaz.
+      "Toprak nem sensörü, tarlalardaki su tüketimini yüzde 30 azaltır."
+    checks:
+      - type: contains
+        terms: ["soil", "moisture", "sensor"]
+      - type: contains
+        terms: ["30%|thirty percent|30 percent"]
+        mode: regex
+      - type: count
+        unit: words
+        min: 6
+      - type: not_contains
+        terms: ["toprak", "sensör"]
+
+  - id: ceviri/en-tr-sonuc
+    category: ceviri
+    difficulty: 2
+    prompt: >-
+      Aşağıdaki cümleyi Türkçeye çevir. Yalnızca çeviriyi yaz.
+      "The committee postponed the decision to the next meeting."
+    checks:
+      - type: contains
+        terms: ["ertel"]
+        mode: regex
+      - type: word_order
+        terms: ["komite", "toplant"]
+      - type: turkish_share
+        min: 0.6
+      - type: not_contains
+        terms: ["committee", "decision", "postpone"]
+
+  - id: ceviri/tr-en-ettirgen
+    category: ceviri
+    difficulty: 3
+    prompt: >-
+      Aşağıdaki cümleyi İngilizceye çevir. Yalnızca çeviriyi yaz.
+      "Teknisyen arızalı yazıcıyı tamir ettirdi."
+      (Anlam: teknisyen birine tamir ETTİRDİ — kendisi yapmadı.)
+    checks:
+      - type: contains
+        terms: ["repaired|fixed"]
+        mode: regex
+      - type: contains
+        terms: ["had|got|have it"]
+        mode: regex
+      - type: not_contains
+        terms: ["teknisyen", "arıza"]

@@ -1,0 +1,59 @@
+# Resmi yazı / dilekçe — formal Turkish petition format.
+# Correct layout: kurum adı → (konu) → Sayın ... → metin → tarih → ad + imza.
+items:
+  - id: resmi-yazi/dilekce-belge
+    category: resmi-yazi
+    difficulty: 2
+    prompt: >-
+      Aşağıdaki bilgilerle resmi dilekçe formatına uygun bir dilekçe yaz:
+      Kurum: Nilüfer Üniversitesi Öğrenci İşleri
+      Konu: Öğrenci belgesi (transkript) talebi
+      Ad Soyad: Mehmet Aydın
+      Öğrenci No: 20234015
+      Tarih: 18 Ekim 2026
+      Yalnızca dilekçe metnini yaz, açıklama ekleme.
+    checks:
+      - type: contains
+        terms: ["Sayın", "transkript", "Mehmet Aydın", "20234015"]
+      - type: word_order
+        terms: ["Öğrenci İşleri", "Sayın", "Mehmet Aydın"]
+      - type: regex
+        pattern: "1[48]\\s+Ekim\\s+2026|Ekim\\s+2026"
+      - type: turkish_share
+        min: 0.5
+
+  - id: resmi-yazi/belediye-sikayet
+    category: resmi-yazi
+    difficulty: 2
+    prompt: >-
+      Mahallesindeki çukur ve bozuk yollarla ilgili belediyeye şikayet dilekçesi
+      yaz. Dilekçe sahibi: Murat Demir, adres: Bahçelievler Mah. 12. Sokak No:5
+      Bursa. Kurum: Nilüfer Belediyesi. Yalnızca dilekçe metnini ver.
+    checks:
+      - type: contains
+        terms: ["Sayın", "çukur", "Murat Demir", "Bahçelievler"]
+      - type: word_order
+        terms: ["Belediye", "Sayın", "Murat Demir"]
+      - type: turkish_share
+        min: 0.5
+      - type: count
+        unit: sentences
+        min: 2
+
+  - id: resmi-yazi/fatura-itiraz
+    category: resmi-yazi
+    difficulty: 3
+    prompt: >-
+      Yüksek gelen elektrik faturasına itiraz dilekçesi yaz.
+      Bilgiler: Abone No 88210344, fatura dönemi Eylül 2026, tutar 1.240 TL,
+      müşteri Ayşe Yıldız, kurum UEDAŞ. İtiraz gerekçesi: aynı dönemde evde
+      bulunulmaması. Yalnızca dilekçe metnini ver.
+    checks:
+      - type: contains
+        terms: ["88210344", "Ayşe Yıldız", "Eylül", "itiraz"]
+      - type: word_order
+        terms: ["Sayın", "itiraz", "Ayşe Yıldız"]
+      - type: not_contains
+        terms: ["tabii ki", "memnuniyetle"]
+      - type: turkish_share
+        min: 0.5

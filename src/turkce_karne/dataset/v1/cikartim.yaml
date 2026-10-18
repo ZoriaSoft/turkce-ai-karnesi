@@ -1,0 +1,92 @@
+# Çıkartım — field extraction from messy OCR-like Turkish documents.
+# All documents are fictional; names/numbers invented for this dataset.
+items:
+  - id: cikartim/fatura
+    category: cikartim
+    difficulty: 3
+    prompt: >-
+      Aşağıdaki fatura metninden alanları çıkar ve YALNIZCA JSON yaz
+      (açıklama yok). Alanlar: satici_unvan, fatura_no, tarih, ara_toplam,
+      kdv, genel_toplam.
+    input: |
+      YILDIZ GIDA  TIC. LTD. STI.
+      Merkez Mah. Sanayi Cd. No:44  Esenler/ISTANBUL
+      VN: 8350049217   Mersis: 0835004921700014
+      FATURA NO: YGD2026-00812
+      Tarih: 12.10.2026   Saat: 14:35
+      --------------------------------
+      4x Bakliyat (kg)     42,50   170,00
+      2x Zeytinyağı 1L     310,00  620,00
+      --------------------------------
+      ARA TOPLAM:  790,00 TL
+      KDV %10:      79,00 TL
+      GENEL TOPLAM: 869,00 TL
+      Odeme: KREDI KARTI
+      Teşekkürler. Iade icin fatura ibrazi zorunludur.
+    expected:
+      satici_unvan: "YILDIZ GIDA TIC. LTD. STI."
+      fatura_no: "YGD2026-00812"
+      tarih: "2026-10-12"
+      ara_toplam: 790
+      kdv: 79
+      genel_toplam: 869
+    checks:
+      - type: json_fields
+        strict: true
+      - type: not_contains
+        terms: ["açıklama", "not:"]
+
+  - id: cikartim/tutanak
+    category: cikartim
+    difficulty: 3
+    prompt: >-
+      Aşağıdaki hasar tespit tutanağından alanları çıkar ve YALNIZCA JSON
+      yaz. Alanlar: tutanak_no, tarih, adres, kisiler (virgülle ayrılmış
+      liste değil, tek string), hasar_ozeti.
+    input: |
+      HASAR TESPIT TUTANAGI
+      Tutanak No: 2026-1147
+      Tarih/Saat: 15.10.2026 / 09:40
+      Adres: Camikebir Mah. Sahil Sk. No:9 D:3 Mudanya/BURSA
+      Tutanağa katılanlar: Ev sahibi Nurten Şen, yönetici İsmail
+      Korkmaz, eksper Levent Aksoy
+      Olay: Binanın 4. kat dairesindeki mutfak tavanında su sızıntısı
+      tespit edilmiştir. Sızıntının 5. kattaki daire banyosundan
+      kaynaklandığı düşünülmektedir. Alçıpan tavanda 60x80 cm'lik
+      alanda kabarma ve renk değişimi gözlemlenmiştir.
+      Sonuç: Üst kat tesisatının kontrol edilmesine karar verilmiştir.
+    expected:
+      tutanak_no: "2026-1147"
+      tarih: "2026-10-15"
+      adres: "Camikebir Mah. Sahil Sk. No:9 D:3 Mudanya/BURSA"
+      kisiler: "Nurten Şen, İsmail Korkmaz, Levent Aksoy"
+      hasar_ozeti: "su sızıntısı"
+    checks:
+      - type: json_fields
+        required: [tutanak_no, tarih]
+
+  - id: cikartim/irsaliye
+    category: cikartim
+    difficulty: 2
+    prompt: >-
+      Aşağıdaki irsaliyeden alanları çıkar ve YALNIZCA JSON yaz.
+      Alanlar: irsaliye_no, gonderen, alici, kalem_sayisi.
+    input: |
+      SEVK IRSALIYESI
+      Irsaliye No: IR-2026-5543
+      Gonderen: Anadolu Ambalaj San. A.S. (Konya OSB)
+      Alici: Berrin Kozmetik Ltd. - Depo 2
+      Urunler:
+       - Karton kutu 40x30x20, adet: 500
+       - Bant (seffaf), adet: 24
+       - Streç film 50cm, rulo: 60
+      Sofor: Hüseyin Demirtaş   Plaka: 34 KLM 208
+      Sevk tarihi: 16.10.2026
+    expected:
+      irsaliye_no: "IR-2026-5543"
+      gonderen: "Anadolu Ambalaj San. A.S."
+      alici: "Berrin Kozmetik Ltd."
+      kalem_sayisi: 3
+    checks:
+      - type: json_fields
+        strict: true

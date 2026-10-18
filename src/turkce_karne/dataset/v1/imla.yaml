@@ -1,0 +1,51 @@
+# İmla — Turkish spelling rules: de/da, ki, mi, bitişik yazım, TDK traps.
+items:
+  - id: imla/de-da
+    category: imla
+    difficulty: 2
+    prompt: >-
+      Aşağıdaki cümledeki de/da yazım hatalarını düzelt ve yalnızca düzeltilmiş
+      cümleyi yaz.
+      "Ben marketede gittim ama araba da bekleyen biri vardı."
+    checks:
+      - type: contains
+        terms: ["markete de", "arabada"]
+      - type: not_contains
+        terms: ["marketede", "araba da "]
+      - type: answer_line
+        value: "Ben markete de gittim ama arabada bekleyen biri vardı."
+    notes: >-
+      Errors: 'marketede' must split (particle de), 'araba da' must join
+      (locative suffix). Both corrections are canonical.
+
+  - id: imla/ki
+    category: imla
+    difficulty: 2
+    prompt: >-
+      Aşağıdakilerden hangisinde 'ki' bitişik yazılmalıdır? Yalnızca doğru
+      şıkkın harfini yaz.
+      A) "Evdeki kitap"  B) "Belki yağmur yağar"  C) "Oysaki kimse gelmedi"
+      D) "Sanki biliyordu"
+    checks:
+      - type: answer_in
+        answers: ["A", "a"]
+
+  - id: imla/mi-mi
+    category: imla
+    difficulty: 1
+    prompt: >-
+      "Süt ...?" cümlesinde soru ekinin doğru biçimi nedir? Yalnızca eki yaz
+      (ör: mı/mi/mu/mü biçiminde).
+    checks:
+      - type: answer_in
+        answers: ["mı", "mı?"]
+
+  - id: imla/bitisik
+    category: imla
+    difficulty: 2
+    prompt: >-
+      Hangi kelime TDK'ya göre bitişik yazılır? Yalnızca doğru kelimeyi yaz.
+      A) "her şey"   B) "hiç bir"   C) "yemek kaşığı"   D) "bir şey"
+    checks:
+      - type: answer_in
+        answers: ["B", "b", "hiçbir"]

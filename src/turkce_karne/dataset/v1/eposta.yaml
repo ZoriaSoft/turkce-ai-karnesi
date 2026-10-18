@@ -1,0 +1,57 @@
+# E-posta — subject line, greeting, body, closing.
+items:
+  - id: eposta/odev-ek-sure
+    category: eposta
+    difficulty: 1
+    prompt: >-
+      Üniversite ödevin için hocana ek süre isteyen kısa bir e-posta yaz.
+      Hoca: Dr. Elif Kaya. Ders: İstatistik. Ödevin teslim tarihi geçiyor.
+      E-posta "Konu:" satırı ile başlasın, nazik bir kapanışla bitsin.
+    checks:
+      - type: starts_with
+        value: "Konu:"
+      - type: contains
+        terms: ["Elif Kaya"]
+      - type: regex
+        pattern: "Sayın|Saygıdeğer|Merhaba"
+      - type: turkish_share
+        min: 0.5
+      - type: count
+        unit: sentences
+        min: 3
+
+  - id: eposta/kargo-sikayet
+    category: eposta
+    difficulty: 2
+    prompt: >-
+      Online aldığın ürünün kargoda hasar gördüğünü bildiren şikayet e-postası
+      yaz. Sipariş no: SPX-44781. Alıcı firma: Nova Market. "Konu:" satırı ile
+      başla.
+    checks:
+      - type: starts_with
+        value: "Konu:"
+      - type: contains
+        terms: ["SPX-44781", "hasar"]
+      - type: turkish_share
+        min: 0.5
+      - type: count
+        unit: sentences
+        min: 3
+
+  - id: eposta/is-basvurusu
+    category: eposta
+    difficulty: 2
+    prompt: >-
+      Yazılım geliştirici pozisyonuna başvuran kısa bir e-posta yaz.
+      Başvuran: Deniz Aksoy. Pozisyon: Backend Geliştirici. Şirket: Atlas
+      Bilişim. CV'nin eklendiğini belirt. "Konu:" satırı ile başla.
+    checks:
+      - type: starts_with
+        value: "Konu:"
+      - type: contains
+        terms: ["Deniz Aksoy", "Backend"]
+      - type: contains
+        terms: ["CV"]
+        mode: regex
+      - type: turkish_share
+        min: 0.45
