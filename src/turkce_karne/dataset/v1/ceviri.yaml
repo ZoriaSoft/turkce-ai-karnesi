@@ -51,3 +51,74 @@ items:
         mode: regex
       - type: not_contains
         terms: ["teknisyen", "arıza"]
+
+  - id: ceviri/tr-en-kosul
+    category: ceviri
+    difficulty: 2
+    prompt: >-
+      Aşağıdaki cümleyi İngilizceye çevir. Yalnızca çeviriyi yaz.
+      "Toplantı zamanında başlarsa, öğleden önce bitecek."
+    checks:
+      - type: contains
+        terms: ["if", "meeting"]
+      - type: contains
+        terms: ["on time", "before noon", "ends?|ends|finish"]
+        mode: regex
+      - type: not_contains
+        terms: ["toplantı", "öğleden"]
+      - type: count
+        unit: words
+        min: 6
+
+  - id: ceviri/en-tr-sure
+    category: ceviri
+    difficulty: 1
+    prompt: >-
+      Aşağıdaki cümleyi Türkçeye çevir. Yalnızca çeviriyi yaz.
+      "The delivery takes two business days."
+    checks:
+      - type: contains
+        terms: ["iki", "iş günü|is gunu"]
+        mode: regex
+      - type: contains
+        terms: ["teslim|kargo"]
+        mode: regex
+      - type: turkish_share
+        min: 0.6
+      - type: not_contains
+        terms: ["delivery", "business"]
+
+  - id: ceviri/tr-en-kayip
+    category: ceviri
+    difficulty: 3
+    prompt: >-
+      Aşağıdaki cümleyi İngilizceye çevir. Yalnızca çeviriyi yaz.
+      "Anahtarımı kaybettim; içeri giremiyorum."
+    checks:
+      - type: contains
+        terms: ["lost|misplaced"]
+        mode: regex
+      - type: contains
+        terms: ["key"]
+      - type: contains
+        terms: ["can't|cannot|can not"]
+        mode: regex
+      - type: not_contains
+        terms: ["anahtar", "kaybettim"]
+
+  - id: ceviri/en-tr-kayit
+    category: ceviri
+    difficulty: 2
+    prompt: >-
+      Aşağıdaki cümleyi Türkçeye çevir. Yalnızca çeviriyi yaz.
+      "The registration deadline is Friday."
+    checks:
+      - type: contains
+        terms: ["cuma"]
+      - type: contains
+        terms: ["kayıt|kayit|son gün|son"]
+        mode: regex
+      - type: turkish_share
+        min: 0.55
+      - type: not_contains
+        terms: ["registration", "deadline", "friday"]

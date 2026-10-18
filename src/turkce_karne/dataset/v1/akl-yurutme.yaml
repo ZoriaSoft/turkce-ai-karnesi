@@ -34,3 +34,50 @@ items:
     checks:
       - type: answer_in
         answers: ["Cevap: 18", "Cevap: 18 yaşında", "re:Cevap:\\s*18\\b"]
+
+  - id: akl-yurutme/mesai
+    category: akl-yurutme
+    difficulty: 2
+    prompt: >-
+      Bir çalışan 40 saat haftalık ücret karşılığı 2.400 TL kazanıyor.
+      Fazla mesai saat ücreti normal saat ücretinin 1,5 katıdır.
+      Çalışan bu hafta 5 saat fazla mesai yaptıysa toplam kaç TL
+      kazanır? Son satırda "Cevap: X" yaz.
+    checks:
+      - type: answer_in
+        answers: ["Cevap: 2850", "re:Cevap:\\s*2[.,]?850\\b"]
+      - type: contains
+        terms: ["2850"]
+    notes: "Saat ücreti 60 TL, fazla mesai 90 TL -> 2400 + 450 = 2850."
+
+  - id: akl-yurutme/dizi
+    category: akl-yurutme
+    difficulty: 2
+    prompt: >-
+      Şu sayı dizisindeki örüntüyü bul ve dizinin beşinci terimini yaz:
+      2, 6, 12, 20, ...
+      Son satırda "Cevap: X" yaz.
+    checks:
+      - type: answer_in
+        answers: ["Cevap: 30", "re:Cevap:\\s*30\\b"]
+    notes: "n*(n+1): 2,6,12,20,30."
+
+  - id: akl-yurutme/indirim
+    category: akl-yurutme
+    difficulty: 2
+    prompt: >-
+      840 TL'lik bir ürüne %25 indirim uygulanıyor. İndirimli fiyat kaç
+      TL? Son satırda "Cevap: X" yaz.
+    checks:
+      - type: answer_in
+        answers: ["Cevap: 630", "re:Cevap:\\s*630\\b"]
+
+  - id: akl-yurutme/isci-gunu
+    category: akl-yurutme
+    difficulty: 3
+    prompt: >-
+      Bir işi 4 işçi 12 günde bitiriyor. Aynı hızla çalışan 6 işçi aynı
+      işi kaç günde bitirir? Son satırda "Cevap: X" yaz.
+    checks:
+      - type: answer_in
+        answers: ["Cevap: 8", "Cevap: 8 gün", "re:Cevap:\\s*8\\b"]

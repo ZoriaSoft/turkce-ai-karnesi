@@ -76,3 +76,64 @@ items:
       - type: not_contains
         terms: ["\\.$"]
         mode: regex
+
+  - id: yonerge/iki-cumle
+    category: yonerge
+    difficulty: 2
+    prompt: >-
+      Bugün hava nasıl? Sadece Türkiye'deki genel havayı soruyorum;
+      tahmin gerekmez. Yanıtı TAM OLARAK 2 cümleyle yaz, üçüncü cümle
+      yazma, madde işareti kullanma.
+    checks:
+      - type: count
+        unit: sentences
+        eq: 2
+      - type: turkish_share
+        min: 0.6
+
+  - id: yonerge/tek-kelime-kategori
+    category: yonerge
+    difficulty: 1
+    prompt: >-
+      "Portakal" hangi kelime türüdür: isim mi fiil mi? Yalnızca
+      "isim" ya da "fiil" yaz.
+    checks:
+      - type: answer_in
+        answers: ["isim"]
+      - type: count
+        unit: words
+        eq: 1
+
+  - id: yonerge/ters-alfabe
+    category: yonerge
+    difficulty: 2
+    prompt: >-
+      Aşağıdaki kelimeleri Türkçe alfabeye göre Z'DEN A'YA sırala, her
+      satıra bir kelime yaz, başka metin yok:
+      armut, elma, çilek
+    checks:
+      - type: word_order
+        terms: ["elma", "çilek", "armut"]
+      - type: count
+        unit: lines
+        eq: 3
+    notes: "TR alfabe: a < c < ç < e; ters sırada elma > çilek > armut."
+
+  - id: yonerge/kelime-sinirli-baslik
+    category: yonerge
+    difficulty: 2
+    prompt: >-
+      Yeni açılan bir çocuk kütüphanesi için EN FAZLA 4 kelimelik bir
+      başlık yaz. Tek satır olsun, nokta ile bitmesin.
+    checks:
+      - type: count
+        unit: words
+        max: 4
+      - type: count
+        unit: lines
+        eq: 1
+      - type: not_contains
+        terms: ["\\.$"]
+        mode: regex
+      - type: turkish_share
+        min: 0.5

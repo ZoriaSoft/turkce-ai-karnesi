@@ -57,3 +57,82 @@ items:
         terms: ["tabii ki", "memnuniyetle"]
       - type: turkish_share
         min: 0.5
+
+  - id: resmi-yazi/izin-dilekcesi
+    category: resmi-yazi
+    difficulty: 2
+    prompt: >-
+      Aşağıdaki bilgilerle izin dilekçesi yaz:
+      Kurum: Marmara Lisesi Müdürlüğü
+      Öğrenci: Elif Şahin (10-B sınıfı)
+      Talep: 20 Ekim 2026 Salı günü ailevi sebep nedeniyle bir gün izin.
+      Veli adı: Zeynep Şahin
+      Yalnızca dilekçe metnini yaz.
+    checks:
+      - type: contains
+        terms: ["Sayın", "izin", "Elif Şahin", "Zeynep Şahin"]
+      - type: regex
+        pattern: "20\\s+Ekim|Ekim\\s+2026"
+      - type: word_order
+        terms: ["Müdür", "Sayın", "Zeynep"]
+      - type: turkish_share
+        min: 0.5
+
+  - id: resmi-yazi/kayip-bildirimi
+    category: resmi-yazi
+    difficulty: 3
+    prompt: >-
+      Öğrenci kimlik kartını kaybettiğini bildiren ve yenisinin
+      düzenlenmesini isteyen resmi dilekçe yaz.
+      Ad Soyad: Kemal Öz. Okul: Çamlıca Fen Lisesi. Öğrenci No: 1147.
+      Kart 17 Ekim 2026'da okul servisinde kaybolmuştur.
+      Yalnızca dilekçe metnini ver.
+    checks:
+      - type: contains
+        terms: ["kayb", "kimlik", "Kemal Öz", "1147"]
+      - type: word_order
+        terms: ["Sayın", "Kemal Öz"]
+      - type: count
+        unit: sentences
+        min: 3
+      - type: turkish_share
+        min: 0.5
+
+  - id: resmi-yazi/veli-toplantisi
+    category: resmi-yazi
+    difficulty: 2
+    prompt: >-
+      Ortaokul müdürlüğünün velilere göndereceği resmi toplantı davetini
+      yaz. Toplantı: 26 Ekim 2026 Pazartesi, saat 14:00, konferans
+      salonu. Gündem: dönem değerlendirmesi. Okul: Deniz Ortaokulu.
+      Yalnızca davet metnini yaz.
+    checks:
+      - type: contains
+        terms: ["veli", "toplantı", "1400", "davet"]
+      - type: regex
+        pattern: "(veli|toplant).*(davet|rica|katılım)|davet"
+      - type: word_order
+        terms: ["Sayın", "toplant"]
+      - type: turkish_share
+        min: 0.5
+
+  - id: resmi-yazi/yoklama-tutanagi
+    category: resmi-yazi
+    difficulty: 3
+    prompt: >-
+      Kısa bir ders yoklama tutanağı metni yaz. Ders: Matematik.
+      Öğretmen: Hatice Erden. Tarih: 19.10.2026. Devamsız öğrenciler:
+      9-A sınıfından Yusuf Can ve Merve Işık. Tutanağı düzenleyen:
+      sınıf başkanı Ömer Akın. "TUTANAKTIR" ile başla, maddeli olsun.
+    checks:
+      - type: starts_with
+        value: "TUTANAKTIR"
+      - type: contains
+        terms: ["Hatice Erden", "Yusuf Can", "Merve Işık", "Matematik"]
+      - type: regex
+        pattern: "19\\.?10\\.?2026|19\\s+Ekim\\s+2026"
+      - type: count
+        unit: lines
+        min: 4
+      - type: turkish_share
+        min: 0.5

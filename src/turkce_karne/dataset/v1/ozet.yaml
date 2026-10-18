@@ -66,3 +66,94 @@ items:
         min: 8
       - type: turkish_share
         min: 0.6
+
+  - id: ozet/toplanti-tutanagi
+    category: ozet
+    difficulty: 2
+    prompt: >-
+      Aşağıdaki toplantı notlarını tam olarak 3 madde halinde özetle.
+      Her madde "- " ile başlasın.
+      ---
+      Toplantıda yeni web sitesi tasarımı konuşuldu. Deniz hanım
+      taslakları cuma günü paylaşacak. Bütçe revizyonu için finans
+      ekibiyle görüşülecek. Yayın tarihi kasım ortası olarak
+      belirlendi. Eski sitenin içerikleri arşivlenecek. Erişilebilirlik
+      denetimi ayrıca yapılacak.
+    checks:
+      - type: count
+        unit: lines
+        eq: 3
+      - type: only_lines_with_prefix
+        prefix: "- "
+        count: 3
+      - type: turkish_share
+        min: 0.5
+
+  - id: ozet/makale-oz
+    category: ozet
+    difficulty: 3
+    prompt: >-
+      Aşağıdaki araştırma özetini en fazla 30 kelimeyle tek cümlede
+      özetle.
+      ---
+      Bu çalışmada 480 üniversite öğrencisinin mobil uygulama
+      kullanımı incelenmiştir. Katılımcıların günde ortalama 4,2 saat
+      telefonda geçirdiği, bu sürenin yüzde 62'sinin sosyal medya
+      uygulamalarında harcandığı bulunmuştur. Araştırma ayrıca
+      bildirim sayısı ile dikkat dağınıklığı arasında anlamlı bir
+      ilişki olduğunu göstermiştir. Sonuçlar, bildirimlerin
+      kısıtlanmasının odaklanma süresini ortalama yüzde 23
+      artırdığını ortaya koymuştur.
+    checks:
+      - type: count
+        unit: sentences
+        eq: 1
+      - type: count
+        unit: words
+        max: 30
+      - type: turkish_share
+        min: 0.6
+
+  - id: ozet/yonetmelik
+    category: ozet
+    difficulty: 3
+    prompt: >-
+      Aşağıdaki uzaktan çalışma yönergesini en fazla 3 cümlede özetle.
+      ---
+      Çalışanlar haftada en fazla iki gün uzaktan çalışabilir. Uzaktan
+      çalışma günleri, bir önceki haftanın son iş günü mesai bitimine
+      kadar ekip yöneticisine bildirilir. Ayda toplam sekiz günü aşan
+      uzaktan çalışma talepleri insan kaynakları onayına tabidir.
+      Uzaktan çalışılan günlerde çevrimiçi toplantılara katılım
+      zorunludur. Şirket ekipmanı yalnızca şirket ağına bağlı
+      kullanılabilir. Yönerge 1 Kasım 2026'da yürürlüğe girer.
+    checks:
+      - type: count
+        unit: sentences
+        max: 3
+      - type: contains
+        terms: ["iki gün|uzaktan|haftada"]
+        mode: regex
+      - type: turkish_share
+        min: 0.6
+
+  - id: ozet/site-tutanagi
+    category: ozet
+    difficulty: 2
+    prompt: >-
+      Aşağıdaki site yönetim toplantısı tutanağını en fazla 40
+      kelimeyle özetle.
+      ---
+      Apartman yönetimi 15 Ekim 2026 tarihinde toplandı. Asansör
+      bakım sözleşmesinin yenilenmesi görüşüldü; mevcut firmayla
+      devam edilmemesine karar verildi. Üç firmadan teklif alınmasına,
+      en uygun teklifin kasım sonuna kadar seçilmesine karar verildi.
+      Bahçe aydınlatmalarının LED ile değiştirilmesi oy birliğiyle
+      kabul edildi. Aidatların artırılması önerisi bir sonraki
+      toplantıya ertelendi. Toplantı 21:30'da sona erdi.
+    checks:
+      - type: count
+        unit: words
+        max: 40
+      - type: turkish_share
+        min: 0.6

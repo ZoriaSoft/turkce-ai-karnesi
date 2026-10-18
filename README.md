@@ -34,7 +34,7 @@ per-task expandable responses.
 
 ## What gets tested
 
-27 original tasks (dataset v1, CC-BY-4.0) across 8 categories:
+59 original tasks (dataset v1, CC-BY-4.0) across 8 categories:
 
 | Category      | What it measures                                   |
 |---------------|----------------------------------------------------|
@@ -48,9 +48,14 @@ per-task expandable responses.
 | `akl-yurutme` | Turkish word problems, `Cevap: X` answer line      |
 
 Every task is scored by checks like `contains`, `word_order`,
-`every_line_matches`, `json_fields`, `count`, `turkish_share`, `answer_in` —
-all deterministic and offline. A task's score is the mean of its check
-verdicts (partial credit for `json_fields`).
+`every_line_matches`, `json_fields`, `count`, `turkish_share`,
+`answer_in`, `written_form` — all deterministic and offline. A task's
+score is the mean of its check verdicts (partial credit for
+`json_fields`, `turkish_share`, `written_form`).
+
+Optionally, a second model can act as a judge on the free-text
+categories (`--judge-model`), adding a fixed-rubric score that blends
+with the deterministic score.
 
 ## How it works
 
@@ -77,13 +82,42 @@ karne list [--categories imla,ceviri]     # show tasks
 karne validate                            # dataset + check-spec lint
 karne run --model M [--tasks id1,id2] [--sample 10 --seed 7]
           [--repeat 3] [--concurrency 4] [--rpm 60]
+          [--judge-model J --judge-weight 0.4]
           [--out results/x.json] [--html]
 karne report a.json b.json --out compare.html   # multi-model scorecard
+karne compare a.json b.json [--json]            # paired diff + flips
 ```
 
 Useful flags: `--dry-run` prints the selection without calling the API;
 `--label` names a run in reports; `--system-prompt` overrides the default
 Turkish system prompt.
+
+### LLM judge
+
+```bash
+karne run --model cheap-model --judge-model stronger-model --html
+```
+
+The judge grades each response on three fixed criteria (0–3 each):
+`instruction_following`, `turkish_quality`, `correctness`. It must answer
+with strict JSON; parse failures fall back to the deterministic score.
+
+- Judge calls use their own credentials: `--judge-base-url`,
+  `--judge-api-key`, or `KARNE_JUDGE_BASE_URL` / `KARNE_JUDGE_API_KEY`
+  (default: same endpoint/key as the model under test).
+- By default only free-text categories are judged:
+  `resmi-yazi`, `eposta`, `ozet`, `ceviri`. Widen with
+  `--judge-categories a,b` or `all`.
+- Final score = `det * (1 - w) + judge * w` where `w` is
+  `--judge-weight` (default 0.4). `det_score` and the per-criterion
+  verdicts stay in the results JSON and HTML.
+
+### Comparing runs
+
+`karne compare a.json b.json` pairs tasks by id and reports score
+deltas, flip counts (fail→pass improvements, pass→fail regressions) and
+a McNemar significance test (exact binomial under 25 discordant pairs,
+chi-square with continuity correction above).
 
 ## Dataset
 
@@ -108,13 +142,15 @@ contributions welcome under CC-BY-4.0.
 
 ## Limits
 
-- Deterministic checks can't judge style deeply; an optional LLM-judge with
-  a fixed rubric is on the roadmap.
 - `turkish_share` is a lexicon+diacritics heuristic, not a language ID.
-- `json_fields` compares the expected subset; extra keys in the response are
-  ignored unless `strict` field-count semantics are added later.
-- Turkish morphology isn't modeled — de/da/ki correctness is tested as
-  tasks, not as a built-in grammar check (roadmap).
+- The judge is a model too — it can be wrong or biased toward its own
+  family's style. Deterministic checks stay the ground truth; the judge
+  is a bounded 0–3 rubric, not free-form scoring.
+- `json_fields` compares the expected subset; extra keys in the response
+  are ignored.
+- Turkish morphology isn't modeled — de/da/ki correctness is tested via
+  authored tasks and `written_form`, not a built-in grammar check.
+
 
 ## Development
 

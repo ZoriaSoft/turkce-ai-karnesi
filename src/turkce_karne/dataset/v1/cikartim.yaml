@@ -90,3 +90,101 @@ items:
     checks:
       - type: json_fields
         strict: true
+
+  - id: cikartim/trafik-tutanak
+    category: cikartim
+    difficulty: 4
+    prompt: >-
+      Aşağıdaki trafik kazası tespit tutanağından alanları çıkar ve
+      YALNIZCA JSON yaz. Alanlar: tutanak_no, kaza_tarihi, plaka_a,
+      plaka_b, surucu_a, surucu_b, kusurlu_taraf.
+    input: |
+      TRAFIK KAZASI TESPIT TUTANAGI
+      Tut. No: KB-2026/3301      Kaza Tarihi: 14.10.2026  Saat: 08:15
+      Yer: Ataturk Bulvari 1207. Sk kavsagi, Cankaya/ANKARA
+      Arac A: 06 ABC 341   Surucu: Okan Saglam
+      Arac B: 34 TRC 908   Surucu: Pinar Erbas
+      Olay ozeti: A araci kavsakte durmadan gecmis, onden giden B
+      aracina arkadan carpmistir. Maddi hasar disinda yaralanan yok.
+      Gozcu: yok. Karar: A araci surucusu takip mesafesini
+      korumadigindan kusurludur.
+    expected:
+      tutanak_no: "KB-2026/3301"
+      kaza_tarihi: "2026-10-14"
+      plaka_a: "06 ABC 341"
+      plaka_b: "34 TRC 908"
+      surucu_a: "Okan Saglam"
+      surucu_b: "Pinar Erbas"
+      kusurlu_taraf: "A"
+    checks:
+      - type: json_fields
+        required: [tutanak_no, kaza_tarihi, kusurlu_taraf]
+
+  - id: cikartim/recete
+    category: cikartim
+    difficulty: 3
+    prompt: >-
+      Aşağıdaki reçete metninden alanları çıkar ve YALNIZCA JSON yaz.
+      Alanlar: doktor, hasta, tarih, ilac_sayisi.
+    input: |
+      SAGLIK OCAKI RECETESI
+      Dr. Aylin Koroglu   Dahiliye Uzmani
+      Hasta: Sukru Yalcin    Sicil: A-2041
+      Tarih: 16.10.2026
+      Rp/ 1. Paracetamol 500mg tb 2x1
+         2. Ibuprofen 400mg tb 3x1
+         3. Vitamin D3 damla 1x10
+      Teshis: ust solunum yolu enfeksiyonu
+      Not: bol sivi, dinlenme onerildi.
+    expected:
+      doktor: "Aylin Koroglu"
+      hasta: "Sukru Yalcin"
+      tarih: "2026-10-16"
+      ilac_sayisi: 3
+    checks:
+      - type: json_fields
+        strict: true
+
+  - id: cikartim/siparis-formu
+    category: cikartim
+    difficulty: 3
+    prompt: >-
+      Aşağıdaki karışık sipariş çıktısından alanları çıkar ve YALNIZCA
+      JSON yaz. Alanlar: musteri, siparis_no, odeme_turu, tutar.
+    input: |
+      *** SIPARIS OZETI ***
+      Musteri : Gorkem Saglam (gorkem@example-mail.com)
+      Siparis No : SP-99120
+      Kalem : Bluetooth kulaklik x1 - birim 1.299,90 TL
+      Kargo : 49,90 TL   Odeme : HAVALE/EFT
+      ----------------------------------------------
+      TOPLAM : 1.349,80 TL
+      Teslimat adresi: Fener Mah. Deniz Sk. 5/2 Antalya
+      Not: Kapiya birakabilirsiniz.
+    expected:
+      musteri: "Gorkem Saglam"
+      siparis_no: "SP-99120"
+      odeme_turu: "HAVALE/EFT"
+      tutar: 1349.80
+    checks:
+      - type: json_fields
+        strict: true
+
+  - id: cikartim/rehber-kayit
+    category: cikartim
+    difficulty: 2
+    prompt: >-
+      Aşağıdaki dağınık rehber kaydından alanları çıkar ve YALNIZCA
+      JSON yaz. Alanlar: ad_soyad, telefon, sehir, meslek.
+    input: |
+      kayit >> AD: serap ulusoy << tel: 0532 671 44 90
+      sehir: IZMIR - meslek: mimar (ofis: Bornova)
+      notlar: 2024 fuarindan kalma kartvizit; eposta okunamiyor
+    expected:
+      ad_soyad: "Serap Ulusoy"
+      telefon: "0532 671 44 90"
+      sehir: "IZMIR"
+      meslek: "mimar"
+    checks:
+      - type: json_fields
+        required: [ad_soyad, telefon]

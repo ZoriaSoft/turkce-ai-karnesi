@@ -453,6 +453,46 @@ def _check_no_refusal(spec: dict, resp: str, ctx) -> CheckResult:
 
 
 # --------------------------------------------------------------------------
+# canonical written forms (spelling corrections)
+
+
+def _check_written_form(spec: dict, resp: str, ctx) -> CheckResult:
+    """Correct vs incorrect written forms in one check.
+
+    ``correct``: term(s) that must appear after normalization.
+    ``incorrect``: optional term(s) that must NOT appear — typically the
+    misspellings the task asked the model to fix. A single substring
+    check is not enough for "rewrite correctly" tasks, since a bad
+    response can both contain the fix and keep the error.
+
+    Score = (found correct - found incorrect) / len(correct), floored
+    at 0; the check passes only at 1.0.
+    """
+    correct = spec.get("correct")
+    if isinstance(correct, str):
+        correct = [correct]
+    if not correct or not all(isinstance(t, str) for t in correct):
+        raise CheckSpecError("written_form needs 'correct' term(s)")
+    incorrect = spec.get("incorrect") or []
+    if isinstance(incorrect, str):
+        incorrect = [incorrect]
+    hn = norm_text(resp)
+    found = [t for t in correct if norm_text(t) in hn]
+    missing = [t for t in correct if norm_text(t) not in hn]
+    bad = [t for t in incorrect if norm_text(t) in hn]
+    frac = max(0.0, (len(found) - len(bad)) / len(correct))
+    return CheckResult(
+        type="written_form",
+        passed=frac >= 0.999,
+        fraction=round(frac, 4),
+        detail={
+            "missing": missing,
+            "bad_found": bad,
+        } if (missing or bad) else {},
+    )
+
+
+# --------------------------------------------------------------------------
 # registry
 
 
@@ -471,6 +511,7 @@ _CHECK_FN = {
     "json_fields": _check_json_fields,
     "turkish_share": _check_turkish_share,
     "no_refusal": _check_no_refusal,
+    "written_form": _check_written_form,
 }
 
 

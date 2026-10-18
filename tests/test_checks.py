@@ -232,3 +232,56 @@ def test_task_score_value():
     rs = [CheckResult("a", True), CheckResult("b", False, fraction=0.5)]
     assert task_score_value(rs) == pytest.approx(0.75)
     assert task_score_value([]) == 0.0
+
+
+# ---- written_form ----------------------------------------------------------
+
+
+def test_written_form_passes():
+    r = chk(
+        "written_form",
+        "Her şeyi tek başıma yaptım.",
+        correct=["her şeyi"],
+        incorrect=["herşey"],
+    )
+    assert r.passed and r.fraction == 1.0
+
+
+def test_written_form_fails_when_error_kept():
+    r = chk(
+        "written_form",
+        "Herşeyi tek başıma yaptım.",
+        correct=["her şeyi"],
+        incorrect=["herşey"],
+    )
+    assert not r.passed and r.fraction == 0.0
+
+
+def test_written_form_partial_credit():
+    r = chk(
+        "written_form",
+        "Markete de gittim, arabada bekliyordu.",
+        correct=["markete de", "arabada"],
+        incorrect=["marketede", "araba da "],
+    )
+    # 2 correct found, 0 incorrect -> passes
+    assert r.passed
+    r2 = chk(
+        "written_form",
+        "Markete de gittim, araba da bekliyordu.",
+        correct=["markete de", "arabada"],
+        incorrect=["marketede"],
+    )
+    # 1/2 correct found -> fraction 0.5, fails
+    assert not r2.passed and r2.fraction == 0.5
+
+
+def test_written_form_requires_correct():
+    from turkce_karne.errors import CheckSpecError
+
+    try:
+        chk("written_form", "x")
+    except CheckSpecError:
+        pass
+    else:
+        raise AssertionError("expected CheckSpecError")

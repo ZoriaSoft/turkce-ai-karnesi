@@ -49,3 +49,62 @@ items:
     checks:
       - type: answer_in
         answers: ["B", "b", "hiçbir"]
+
+  - id: imla/hersey-yalniz
+    category: imla
+    difficulty: 2
+    prompt: >-
+      Aşağıdaki cümledeki yazım hatalarını düzelt ve yalnızca düzeltilmiş
+      cümleyi yaz.
+      "Herşeyi tek başıma yapmak zorunda kaldım, yalnız başına çalışmak
+      yorucu."
+    checks:
+      - type: written_form
+        correct: ["her şeyi", "yalnız başına"]
+        incorrect: ["herşey", "yanlız"]
+      - type: answer_line
+        value: "Her şeyi tek başıma yapmak zorunda kaldım, yalnız başına çalışmak yorucu."
+    notes: >-
+      'Herşey' -> 'her şey' (ayrı yazılır). 'yalnız başına' zaten doğru;
+      modelin bozmaması gerekir.
+
+  - id: imla/kisaltma-nokta
+    category: imla
+    difficulty: 3
+    prompt: >-
+      TDK'ya göre aşağıdaki akademik unvan kısaltmalarından hangisi doğru
+      yazılmıştır? Yalnızca doğru şıkkın harfini yaz.
+      A) Dr  B) Dr.  C) DR  D) dr
+    checks:
+      - type: answer_in
+        answers: ["B", "b", "Dr."]
+    notes: "Unvan kısaltmaları nokta ile biter: Dr., Prof. Dr., Av."
+
+  - id: imla/bitisik-secimi
+    category: imla
+    difficulty: 2
+    prompt: >-
+      Aşağıdakilerden hangisi bitişik yazılır? Yalnızca doğru kelimeyi
+      yaz.
+      A) "her halükarda"   B) "bil miyorum"   C) "bilmiyorum"
+      D) "yanlız"
+    checks:
+      - type: answer_in
+        answers: ["C", "c", "bilmiyorum"]
+
+  - id: imla/ek-ayrimi
+    category: imla
+    difficulty: 3
+    prompt: >-
+      Aşağıdaki cümlelerden hangisinde ek ve bağlaç yazımı tamamen
+      doğrudur? Yalnızca şık harfini yaz.
+      A) Ankara'ya da gidecek.
+      B) Okulada gidiyor.
+      C) Benimde fikrim var.
+      D) İstanbula yarın dönüyor.
+    checks:
+      - type: answer_in
+        answers: ["A", "a"]
+    notes: >-
+      B: 'okula da' ayrı; C: 'benim de' ayrı; D: 'İstanbul'a' kesme
+      gerekir. A'da yöneltme eki ve 'da' bağlacı doğru.

@@ -20,28 +20,42 @@ repo/directory/remote keep the current name until then.
 - [x] CLI: `karne list`, `karne run`, `karne report`, `karne validate`.
 - [x] Tests with fake model server (no real API calls).
 
-## Round 2 candidates
-- [ ] Expand dataset to ~60 tasks; deepen weak categories (tutanak OCR, daha
-      zor akıl yürütme, uzun özet).
-- [ ] LLM judge: fixed rubric (0-3 per criterion), judge = separate
-      `--judge-model`, cached like model calls; blended score = deterministic
-      + judge weight configurable.
-- [ ] Turkish spell-rule checks beyond lexicon: de/da clitic vs suffix
-      heuristic, question particle mi/mı/mu/mü harmony check.
-- [ ] `karne compare a.json b.json` — side-by-side diff, significance of
-      per-task flips.
-- [ ] Per-category HTML breakdown + per-task expandable raw outputs.
+## Round 2 (done)
+- [x] LLM judge: fixed 0-3 rubric (instruction_following, turkish_quality,
+      correctness), strict-JSON contract, `--judge-model` + `KARNE_JUDGE_*`,
+      cached like model calls, blended score det*(1-w)+judge*w (w=0.4),
+      per-task det_score + judge verdicts in JSON/HTML.
+- [x] `karne compare a.json b.json`: paired diffs, flips, McNemar test
+      (exact <25 pairs, chi2-cc otherwise), `--json` output.
+- [x] `written_form` check (correct vs incorrect forms, partial credit).
+- [x] Dataset expanded to 59 tasks (+4/category): trafik/site/yoklama
+      tutanak, reçete + sipariş extraction, harder akıl-yürütme, uzun özet,
+      imla kisaltma/ek-ayrimi, format-strict yonerge.
+- [x] HTML: judge meta per run, det+judge split per task, conditional footer.
+
+## Round 3+ candidates
+- [ ] Turkish spell-rule checks beyond authored tasks: de/da clitic-vs-suffix
+      heuristic, mi/mı/mu/mü harmony check as reusable check types.
 - [ ] Prompt sets: `--prompt-style zero|fewshot|cot` with fixed templates.
-- [ ] Pricing table for common TR-relevant cheap models; `karne price-estimate`.
+- [ ] Pricing table expansion for TR-relevant cheap models;
+      `karne price-estimate` (dry-run token estimate, no API call).
 - [ ] GitHub Actions CI (when public): pytest + dataset lint + build check.
 - [ ] `uv run` / `pipx` quickstart verification on a clean env.
 - [ ] Multimodal-free "OCR-like" generator: seeded noise injector to synthesize
       more fatura/tutanak inputs deterministically.
 - [ ] Turkish tokenizer-aware length checks (BPE vs word discrepancy note).
+- [ ] `--judge-runs N`: judge each response N times, median verdict
+      (mitigates single-judge variance).
+- [ ] Per-category radar/bar chart in HTML (inline SVG, still zero deps).
+- [ ] `karne diff --checks`: show per-check verdict flips between two runs
+      (compare currently operates at task level).
 
 ## Known limits / decisions
 - `json_fields` extracts first balanced `{...}` block; nested braces OK.
 - `turkish_share` uses a small built-in lexicon; threshold-based, heuristic.
-- Judge deliberately absent in v1; deterministic checks must carry the signal.
+- Judge is optional and bounded (0-3 rubric, strict JSON); deterministic
+  checks stay ground truth; blend keeps `det_score` in the results.
+- McNemar pairing assumes two runs share task ids; disjoint tasks are
+  reported as `only_in_*`, not scored.
 - Concurrency is client-side only; deterministic regardless of interleaving
   because cache keys are content-based.

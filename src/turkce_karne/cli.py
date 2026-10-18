@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -13,7 +14,8 @@ from .checks import check_types
 from .dataset import categories, dataset_digest, load_dataset, resolve_dataset_dir
 from .errors import CheckSpecError, ClientError, DatasetError
 from .report import render_html, runs_from_files, write_html
-from .runner import RunConfig, run_eval, save_results
+from .runner import RunConfig, load_results, run_eval, save_results
+from .compare import compare_runs, format_compare
 
 
 def _env_or(default=None):
@@ -70,13 +72,30 @@ def build_parser() -> argparse.ArgumentParser:
     rp.add_argument("--dry-run", action="store_true",
                     help="validate selection, print plan, no API calls")
 
+    rp.add_argument("--judge-model", help="judge model (or KARNE_JUDGE_MODEL); "
+                    "enables the LLM judge on judgeable categories")
+    rp.add_argument("--judge-base-url", help="judge endpoint "
+                    "(or KARNE_JUDGE_BASE_URL; default: same as model)")
+    rp.add_argument("--judge-api-key", help="judge key "
+                    "(or KARNE_JUDGE_API_KEY; default: same as model)")
+    rp.add_argument("--judge-weight", type=float, default=0.4,
+                    help="blend weight for judge score (0-1, default 0.4)")
+    rp.add_argument("--judge-categories", default=None,
+                    help="comma-separated categories to judge "
+                    "('all' = every task; default: free-text categories)")
+
     hp = sub.add_parser("report", help="Render results JSON(s) to HTML")
     hp.add_argument("results", nargs="+", help="results JSON file(s)")
     hp.add_argument("--out", required=True, help="output HTML path")
     hp.add_argument("--title", help="report title")
 
-    return p
+    cp = sub.add_parser("compare", help="Paired diff of two results JSONs")
+    cp.add_argument("a", help="baseline results JSON")
+    cp.add_argument("b", help="new results JSON")
+    cp.add_argument("--json", action="store_true",
+                    help="print machine-readable JSON to stdout")
 
+    return p
 
 def _split(s: str | None) -> list[str] | None:
     if not s:
@@ -139,6 +158,19 @@ def cmd_run(args) -> int:
         timeout=args.timeout,
         max_retries=args.max_retries,
         label=args.label,
+        judge_model=args.judge_model or os.environ.get("KARNE_JUDGE_MODEL"),
+        judge_base_url=args.judge_base_url,
+        judge_api_key=args.judge_api_key,
+        judge_weight=args.judge_weight,
+        judge_categories=(
+            None
+            if args.judge_categories is None
+            else (
+                ["*"]
+                if args.judge_categories.strip().lower() == "all"
+                else _split(args.judge_categories)
+            )
+        ),
     )
     if args.dry_run:
         from .runner import select_tasks
@@ -178,11 +210,19 @@ def cmd_run(args) -> int:
         print(f"wrote:  {hpath}")
     return 0
 
-
 def cmd_report(args) -> int:
     runs = runs_from_files(args.results)
     write_html(runs, args.out, title=args.title)
     print(f"wrote: {args.out} ({len(runs)} run(s))")
+    return 0
+
+
+def cmd_compare(args) -> int:
+    rep = compare_runs(load_results(args.a), load_results(args.b))
+    if args.json:
+        print(json.dumps(rep, ensure_ascii=False, indent=2))
+    else:
+        print(format_compare(rep))
     return 0
 
 
@@ -193,6 +233,7 @@ def main(argv: list[str] | None = None) -> int:
         "validate": cmd_validate,
         "run": cmd_run,
         "report": cmd_report,
+        "compare": cmd_compare,
     }[args.cmd]
     return fn(args)
 

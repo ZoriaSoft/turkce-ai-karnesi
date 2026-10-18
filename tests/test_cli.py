@@ -69,3 +69,35 @@ def test_run_missing_model_fails():
         assert e.code != 0
     else:  # pragma: no cover
         raise AssertionError("expected argparse to exit")
+
+
+def test_compare_cli(tmp_path, capsys):
+    a = tmp_path / "a.json"
+    b = tmp_path / "b.json"
+    base = {
+        "model": "m1",
+        "summary": {"score": 0.5},
+        "tasks": [
+            {"id": "c/1", "category": "c", "score": 1.0},
+            {"id": "c/2", "category": "c", "score": 0.0},
+        ],
+    }
+    new = {
+        "model": "m2",
+        "summary": {"score": 1.0},
+        "tasks": [
+            {"id": "c/1", "category": "c", "score": 1.0},
+            {"id": "c/2", "category": "c", "score": 1.0},
+        ],
+    }
+    a.write_text(json.dumps(base), encoding="utf-8")
+    b.write_text(json.dumps(new), encoding="utf-8")
+    rc = main(["compare", str(a), str(b)])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "1 improved" in out and "McNemar" in out
+
+    rc = main(["compare", str(a), str(b), "--json"])
+    assert rc == 0
+    data = json.loads(capsys.readouterr().out)
+    assert data["improvements"] == 1

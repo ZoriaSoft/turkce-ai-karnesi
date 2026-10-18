@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import random
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -27,6 +28,7 @@ from .dataset import (
     resolve_dataset_dir,
 )
 from .errors import ClientError
+from .judge import JudgeRunner
 from .model import CheckResult, Task, TaskScore
 
 DEFAULT_SYSTEM = (
@@ -60,6 +62,17 @@ class RunConfig:
     max_retries: int = 4
     label: str | None = None
     run_id: str | None = None
+    # optional LLM judge (None = off). Judge uses its own endpoint/key
+    # falling back to the main client's base_url/api_key.
+    judge_model: str | None = None
+    judge_base_url: str | None = None
+    judge_api_key: str | None = None
+    # blend: final = det*(1-w) + judge*w. 0 < w <= 1
+    judge_weight: float = 0.4
+    # categories the judge grades; None = judge.DEFAULT_JUDGE_CATEGORIES;
+    # pass ["*"] to judge everything
+    judge_categories: list[str] | None = None
+    judge_max_tokens: int = 512
 
     def fingerprint(self) -> str:
         """sha256 over the config knobs that affect results (no secrets)."""
@@ -74,10 +87,14 @@ class RunConfig:
             "temperature": self.temperature,
             "max_tokens": self.max_tokens,
             "system_prompt": self.system_prompt,
+            "judge_model": self.judge_model,
+            "judge_weight": self.judge_weight,
+            "judge_categories": (
+                sorted(self.judge_categories) if self.judge_categories else None
+            ),
         }
         blob = json.dumps(d, ensure_ascii=False, sort_keys=True)
         return hashlib.sha256(blob.encode()).hexdigest()[:16]
-
 
 def select_tasks(tasks: list[Task], cfg: RunConfig) -> list[Task]:
     sel = list(tasks)
@@ -104,11 +121,19 @@ def _messages(task: Task, system: str) -> list[dict]:
     ]
 
 
+def _blend(det: float, judge_score: float | None, weight: float) -> float:
+    if judge_score is None:
+        return det
+    return det * (1.0 - weight) + judge_score * weight
+
+
 def _score_one(
     client: OpenAICompatClient,
     gen: GenerationConfig,
     task: Task,
     system: str,
+    judge: JudgeRunner | None = None,
+    judge_weight: float = 0.4,
 ) -> TaskScore:
     try:
         res = client.complete(gen, _messages(task, system))
@@ -144,21 +169,32 @@ def _score_one(
             retries=res.retries,
             usage=res.usage,
         )
+    det = task_score_value(results)
+    jres = (
+        judge.judge(task, content)
+        if judge is not None and judge.applies(task.category)
+        else None
+    )
+    score = det if jres is None else _blend(det, jres.score, judge_weight)
     return TaskScore(
         id=task.id,
         category=task.category,
-        score=task_score_value(results),
+        score=score,
         response=content,
         checks=results,
         cached=res.cached,
         latency_ms=res.latency_ms,
         retries=res.retries,
         usage=res.usage,
+        det_score=det,
+        judge=jres.to_dict() if jres is not None else None,
     )
 
 
 def run_eval(
-    cfg: RunConfig, client: OpenAICompatClient | None = None
+    cfg: RunConfig,
+    client: OpenAICompatClient | None = None,
+    judge_client: OpenAICompatClient | None = None,
 ) -> dict:
     """Execute the run and return the serializable results dict."""
     base = resolve_dataset_dir(cfg.dataset_path)
@@ -187,12 +223,64 @@ def run_eval(
         )
     else:
         client.cache = cache
+
+    judge: JudgeRunner | None = None
+    own_judge_client = False
+    if cfg.judge_model:
+        if not 0 < cfg.judge_weight <= 1:
+            raise ClientError("judge_weight must be in (0, 1]")
+        if judge_client is None:
+            from .client import client_from_env
+
+            # judge endpoint/key: explicit judge args > KARNE_JUDGE_* env >
+            # main client's credentials
+            j_base = (
+                cfg.judge_base_url
+                or os.environ.get("KARNE_JUDGE_BASE_URL")
+                or client.base_url
+            )
+            j_key = (
+                cfg.judge_api_key
+                if cfg.judge_api_key is not None
+                else os.environ.get("KARNE_JUDGE_API_KEY", client.api_key)
+            )
+            judge_client = client_from_env(
+                base_url=j_base,
+                api_key=j_key,
+                rpm=cfg.rpm,
+                timeout=cfg.timeout,
+                max_retries=cfg.max_retries,
+                cache=cache,
+            )
+            own_judge_client = True
+        else:
+            judge_client.cache = cache
+        cats = (
+            None
+            if cfg.judge_categories is None
+            else set(cfg.judge_categories)
+        )
+        judge = JudgeRunner(
+            judge_client,
+            cfg.judge_model,
+            categories=cats,
+            max_tokens=cfg.judge_max_tokens,
+        )
+
     started = time.time()
     scores: list[TaskScore] = []
     if cfg.concurrency > 1 and len(selected) > 1:
         with ThreadPoolExecutor(max_workers=cfg.concurrency) as pool:
             futs = {
-                pool.submit(_score_one, client, gen, t, cfg.system_prompt): i
+                pool.submit(
+                    _score_one,
+                    client,
+                    gen,
+                    t,
+                    cfg.system_prompt,
+                    judge,
+                    cfg.judge_weight,
+                ): i
                 for i, t in enumerate(selected)
             }
             tmp: dict[int, TaskScore] = {}
@@ -201,12 +289,16 @@ def run_eval(
             scores = [tmp[i] for i in range(len(selected))]
     else:
         scores = [
-            _score_one(client, gen, t, cfg.system_prompt) for t in selected
+            _score_one(
+                client, gen, t, cfg.system_prompt, judge, cfg.judge_weight
+            )
+            for t in selected
         ]
     elapsed_ms = int((time.time() - started) * 1000)
     if own_client:
         client.close()
-
+    if own_judge_client:
+        judge_client.close()
     per_task = [s.to_dict() for s in scores]
     n = len(scores)
     mean = sum(s.score for s in scores) / n if n else 0.0
@@ -229,6 +321,26 @@ def run_eval(
     )
     cost = estimate_cost_usd(
         cfg.model, {"prompt_tokens": tokens_in, "completion_tokens": tokens_out}
+    )
+    judged = [s for s in scores if s.judge is not None]
+    j_ok = [s for s in judged if (s.judge or {}).get("score") is not None]
+    j_tokens_in = sum(
+        (s.judge.get("usage") or {}).get("prompt_tokens", 0)
+        + (s.judge.get("usage") or {}).get("input_tokens", 0)
+        for s in judged
+    )
+    j_tokens_out = sum(
+        (s.judge.get("usage") or {}).get("completion_tokens", 0)
+        + (s.judge.get("usage") or {}).get("output_tokens", 0)
+        for s in judged
+    )
+    j_cost = (
+        estimate_cost_usd(
+            cfg.judge_model,
+            {"prompt_tokens": j_tokens_in, "completion_tokens": j_tokens_out},
+        )
+        if cfg.judge_model
+        else None
     )
     results = {
         "format": "turkce-karne/v1",
@@ -268,6 +380,17 @@ def run_eval(
         },
         "tasks": per_task,
     }
+    if judge is not None:
+        results["judge"] = {
+            "model": cfg.judge_model,
+            "weight": cfg.judge_weight,
+            "categories": sorted(judge.categories),
+            "n_judged": len(j_ok),
+            "n_judge_errors": len(judged) - len(j_ok),
+            "est_cost_usd": (
+                round(j_cost, 6) if j_cost is not None else None
+            ),
+        }
     return results
 
 

@@ -67,6 +67,11 @@ class TaskScore:
     latency_ms: int = 0
     retries: int = 0
     usage: dict | None = None
+    # deterministic-only score before judge blending; equals ``score``
+    # when no judge ran for this task
+    det_score: float | None = None
+    # serializable judge verdict dict (JudgeResult.to_dict) or None
+    judge: dict | None = None
 
     def to_dict(self) -> dict:
         d = {
@@ -76,6 +81,10 @@ class TaskScore:
             "checks": [c.to_dict() for c in self.checks],
             "latency_ms": self.latency_ms,
         }
+        if self.det_score is not None:
+            d["det_score"] = round(self.det_score, 4)
+        if self.judge is not None:
+            d["judge"] = self.judge
         if self.response is not None:
             d["response"] = self.response
         if self.error is not None:
