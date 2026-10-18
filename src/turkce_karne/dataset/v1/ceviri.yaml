@@ -34,6 +34,7 @@ items:
         min: 0.6
       - type: not_contains
         terms: ["committee", "decision", "postpone"]
+      - type: spelling_rules
 
   - id: ceviri/tr-en-ettirgen
     category: ceviri
@@ -87,6 +88,7 @@ items:
         min: 0.6
       - type: not_contains
         terms: ["delivery", "business"]
+      - type: spelling_rules
 
   - id: ceviri/tr-en-kayip
     category: ceviri
@@ -122,3 +124,4 @@ items:
         min: 0.55
       - type: not_contains
         terms: ["registration", "deadline", "friday"]
+      - type: spelling_rules

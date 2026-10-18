@@ -19,6 +19,7 @@ items:
       - type: count
         unit: sentences
         min: 3
+      - type: spelling_rules
 
   - id: eposta/kargo-sikayet
     category: eposta
@@ -37,6 +38,7 @@ items:
       - type: count
         unit: sentences
         min: 3
+      - type: spelling_rules
 
   - id: eposta/is-basvurusu
     category: eposta
@@ -55,6 +57,7 @@ items:
         mode: regex
       - type: turkish_share
         min: 0.45
+      - type: spelling_rules
 
   - id: eposta/toplandi-erteleme
     category: eposta
@@ -72,6 +75,7 @@ items:
         pattern: "erte|ertelen"
       - type: turkish_share
         min: 0.5
+      - type: spelling_rules
 
   - id: eposta/fiyat-teklifi
     category: eposta
@@ -90,6 +94,7 @@ items:
       - type: count
         unit: sentences
         min: 3
+      - type: spelling_rules
 
   - id: eposta/hata-bildirimi
     category: eposta
@@ -111,6 +116,7 @@ items:
       - type: count
         unit: sentences
         min: 3
+      - type: spelling_rules
 
   - id: eposta/tesekkur
     category: eposta
@@ -129,3 +135,4 @@ items:
       - type: count
         unit: sentences
         min: 2
+      - type: spelling_rules

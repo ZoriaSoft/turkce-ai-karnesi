@@ -29,6 +29,7 @@ from .textnorm import (
     words,
 )
 from .turkish_lexicon import TURKISH_WORDS
+from .spelling import SCANNERS
 
 
 def _need(spec: dict, *names: str) -> None:
@@ -491,6 +492,60 @@ def _check_written_form(spec: dict, resp: str, ctx) -> CheckResult:
         } if (missing or bad) else {},
     )
 
+# --------------------------------------------------------------------------
+# Turkish orthography rules (deterministic scanners in spelling.py)
+
+
+def _check_spelling_rules(spec: dict, resp: str, ctx) -> CheckResult:
+    """Scan the response for unambiguous Turkish spelling violations.
+
+    Rules (subset via ``rules:``):
+      - ``mi_attached``:   question particle glued to a word ("gelmişmi").
+      - ``mi_harmony``:    separate particle with wrong vowel ("Geldim mı").
+      - ``ki_separate``:   "-ki" left separate after locative/ablative or
+                           time adverbial ("evde ki", "bugün ki").
+      - ``compound_traps``: canonical fused-form misspellings ("herşey",
+                           "yanlız", "yada", "dahada"...).
+
+    ``allow:`` lists extra tokens/stems to skip (proper nouns, jargon).
+    ``max_violations`` tolerates N hits (default 0). Partial credit:
+    each violation costs 25% of the check.
+    """
+    names = spec.get("rules")
+    if names is None:
+        scanners = list(SCANNERS.values())
+    else:
+        if isinstance(names, str):
+            names = [names]
+        bad = [n for n in names if n not in SCANNERS]
+        if bad:
+            raise CheckSpecError(
+                f"unknown spelling rule(s) {bad!r} "
+                f"(known: {', '.join(sorted(SCANNERS))})"
+            )
+        scanners = [SCANNERS[n] for n in names]
+    allow = spec.get("allow") or []
+    if isinstance(allow, str):
+        allow = [allow]
+    if not all(isinstance(a, str) for a in allow):
+        raise CheckSpecError("spelling_rules 'allow' must be string(s)")
+    allow_set = {norm_text(a) for a in allow}
+    max_v = int(spec.get("max_violations", 0))
+
+    violations: list[str] = []
+    for scan in scanners:
+        violations.extend(scan(resp, allow_set))
+    n = len(violations)
+    frac = max(0.0, 1.0 - 0.25 * n)
+    return CheckResult(
+        type="spelling_rules",
+        passed=n <= max_v,
+        fraction=round(frac, 4),
+        detail={"violations": violations[:12], "count": n}
+        if n else {},
+    )
+
+
 
 # --------------------------------------------------------------------------
 # registry
@@ -512,6 +567,7 @@ _CHECK_FN = {
     "turkish_share": _check_turkish_share,
     "no_refusal": _check_no_refusal,
     "written_form": _check_written_form,
+    "spelling_rules": _check_spelling_rules,
 }
 
 

@@ -85,6 +85,57 @@
     </table>
   </div>
 
+  {% if chart %}
+  <h2>By category</h2>
+  <div class="panel">
+    {% set bh = 11 %}{% set gap = 3 %}
+    {% set rowh = chart.n_runs * (bh + gap) + 6 %}
+    <svg width="760" height="{{ chart.cats|length * rowh + 26 }}"
+         viewBox="0 0 760 {{ chart.cats|length * rowh + 26 }}"
+         xmlns="http://www.w3.org/2000/svg" role="img"
+         aria-label="per-category scores">
+      <line x1="170" y1="4" x2="170" y2="{{ chart.cats|length * rowh + 4 }}"
+            stroke="#262b35"/>
+      {% for x in [0.25, 0.5, 0.75, 1.0] %}
+      <line x1="{{ 170 + x * 560 }}" y1="4"
+            x2="{{ 170 + x * 560 }}" y2="{{ chart.cats|length * rowh + 4 }}"
+            stroke="#262b35" stroke-dasharray="3 4"/>
+      <text x="{{ 170 + x * 560 }}" y="{{ chart.cats|length * rowh + 18 }}"
+            fill="#9aa1ad" font-size="10" text-anchor="middle">
+        {{ (x * 100)|round|int }}%</text>
+      {% endfor %}
+      {% for cat in chart.cats %}
+        {% set base = loop.index0 * rowh + 4 %}
+        <text x="164" y="{{ base + bh }}" fill="#e8e9ec" font-size="11"
+              text-anchor="end">{{ cat }}</text>
+        {% for i in range(chart.n_runs) %}
+          {% set v = chart.bars[cat].get(i) %}
+          {% if v is not none %}
+          <rect x="170" y="{{ base + i * (bh + gap) }}"
+                width="{{ (v * 560)|round(1) }}" height="{{ bh }}"
+                rx="2" fill="{{ chart.colors[i] }}"/>
+          <text x="{{ 176 + v * 560 }}" y="{{ base + i * (bh + gap) + 8.5 }}"
+                fill="#9aa1ad" font-size="10">{{ (v*100)|round|int }}</text>
+          {% else %}
+          <text x="176" y="{{ base + i * (bh + gap) + 8.5 }}" fill="#5a626e"
+                font-size="10">n/a</text>
+          {% endif %}
+        {% endfor %}
+      {% endfor %}
+    </svg>
+    {% if chart.n_runs > 1 %}
+    <div class="meta" style="margin-top:6px">
+      {% for i in range(chart.n_runs) %}
+      <span style="margin-right:14px">
+        <span style="display:inline-block;width:9px;height:9px;
+              background:{{ chart.colors[i] }};border-radius:2px;
+              margin-right:5px"></span>{{ chart.labels[i] }}</span>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
   {% for r in runs %}
   <h2>{{ r.label or r.model }}</h2>
   <div class="panel">

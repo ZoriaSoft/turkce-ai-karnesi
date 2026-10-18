@@ -32,6 +32,23 @@ def test_dry_run(capsys):
     assert rc == 0
     out = capsys.readouterr().out
     assert "selected:" in out and "imla/" in out
+    assert "est. tokens:" in out and "fingerprint:" in out
+
+
+def test_dry_run_prompt_style(capsys):
+    rc = main(
+        [
+            "run",
+            "--model", "fake-model",
+            "--dataset", "dataset",
+            "--tasks", "imla/de-da",
+            "--prompt-style", "fewshot",
+            "--dry-run",
+        ]
+    )
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "style:    fewshot" in out and "selected: 1" in out
 
 
 def test_run_then_report(dataset_dir, fake_openai, tmp_path, capsys):

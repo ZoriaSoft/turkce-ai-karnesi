@@ -25,6 +25,7 @@ from .dataset import (
     dataset_digest,
     items_digest,
     load_dataset,
+    load_exemplars,
     resolve_dataset_dir,
 )
 from .errors import ClientError
@@ -73,6 +74,9 @@ class RunConfig:
     # pass ["*"] to judge everything
     judge_categories: list[str] | None = None
     judge_max_tokens: int = 512
+    # prompt style: 'zero' (default), 'fewshot' (one exemplar per
+    # category), 'cot' (chain-of-thought nudge suffix)
+    prompt_style: str = "zero"
 
     def fingerprint(self) -> str:
         """sha256 over the config knobs that affect results (no secrets)."""
@@ -92,6 +96,7 @@ class RunConfig:
             "judge_categories": (
                 sorted(self.judge_categories) if self.judge_categories else None
             ),
+            "prompt_style": self.prompt_style,
         }
         blob = json.dumps(d, ensure_ascii=False, sort_keys=True)
         return hashlib.sha256(blob.encode()).hexdigest()[:16]
@@ -113,12 +118,24 @@ def select_tasks(tasks: list[Task], cfg: RunConfig) -> list[Task]:
     return sel
 
 
-def _messages(task: Task, system: str) -> list[dict]:
+def _messages(
+    task: Task,
+    system: str,
+    style: str = "zero",
+    exemplar: dict | None = None,
+) -> list[dict]:
     user = task.prompt if task.input is None else f"{task.prompt}\n\n{task.input}"
-    return [
-        {"role": "system", "content": system},
-        {"role": "user", "content": user},
-    ]
+    if style == "cot":
+        user = (
+            user
+            + "\n\nÖnce adım adım düşün, sonra nihai cevabını yaz."
+        )
+    msgs = [{"role": "system", "content": system}]
+    if style == "fewshot" and exemplar:
+        msgs.append({"role": "user", "content": exemplar["user"]})
+        msgs.append({"role": "assistant", "content": exemplar["assistant"]})
+    msgs.append({"role": "user", "content": user})
+    return msgs
 
 
 def _blend(det: float, judge_score: float | None, weight: float) -> float:
@@ -134,9 +151,11 @@ def _score_one(
     system: str,
     judge: JudgeRunner | None = None,
     judge_weight: float = 0.4,
+    style: str = "zero",
+    exemplar: dict | None = None,
 ) -> TaskScore:
     try:
-        res = client.complete(gen, _messages(task, system))
+        res = client.complete(gen, _messages(task, system, style, exemplar))
     except ClientError as e:
         return TaskScore(
             id=task.id, category=task.category, score=0.0, error=str(e)
@@ -204,6 +223,15 @@ def run_eval(
         raise ClientError("no tasks selected (check --tasks/--categories/--sample)")
 
     cache = FileCache(cfg.cache_dir)
+    if cfg.prompt_style not in ("zero", "fewshot", "cot"):
+        raise ClientError(
+            f"unknown prompt_style {cfg.prompt_style!r} (zero|fewshot|cot)"
+        )
+    exemplars = (
+        load_exemplars(cfg.dataset_path, version=cfg.version)
+        if cfg.prompt_style == "fewshot"
+        else {}
+    )
     gen = GenerationConfig(
         model=cfg.model,
         temperature=cfg.temperature,
@@ -280,6 +308,8 @@ def run_eval(
                     cfg.system_prompt,
                     judge,
                     cfg.judge_weight,
+                    cfg.prompt_style,
+                    exemplars.get(t.category) or exemplars.get("default"),
                 ): i
                 for i, t in enumerate(selected)
             }
@@ -290,7 +320,14 @@ def run_eval(
     else:
         scores = [
             _score_one(
-                client, gen, t, cfg.system_prompt, judge, cfg.judge_weight
+                client,
+                gen,
+                t,
+                cfg.system_prompt,
+                judge,
+                cfg.judge_weight,
+                cfg.prompt_style,
+                exemplars.get(t.category) or exemplars.get("default"),
             )
             for t in selected
         ]
@@ -366,6 +403,7 @@ def run_eval(
             "repeat": cfg.repeat,
             "categories": cfg.categories,
             "task_ids": cfg.task_ids,
+            "prompt_style": cfg.prompt_style,
         },
         "summary": {
             "score": round(mean, 4),

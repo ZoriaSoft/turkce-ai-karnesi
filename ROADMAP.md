@@ -33,22 +33,38 @@ repo/directory/remote keep the current name until then.
       imla kisaltma/ek-ayrimi, format-strict yonerge.
 - [x] HTML: judge meta per run, det+judge split per task, conditional footer.
 
-## Round 3+ candidates
-- [ ] Turkish spell-rule checks beyond authored tasks: de/da clitic-vs-suffix
-      heuristic, mi/mı/mu/mü harmony check as reusable check types.
-- [ ] Prompt sets: `--prompt-style zero|fewshot|cot` with fixed templates.
-- [ ] Pricing table expansion for TR-relevant cheap models;
-      `karne price-estimate` (dry-run token estimate, no API call).
+## Round 3 (done)
+- [x] `spelling_rules` check + `spelling.py`: four high-precision TDK
+      scans (question particle attached, particle vowel harmony, `-ki`
+      separated, canonical fused-form traps), `rules`/`allow`/
+      `max_violations` spec knobs, partial credit 0.25/violation.
+      Wired into 24 free-prose tasks + 2 new imla tasks (59→61).
+- [x] Turkish lexicon ~170 → ~780 entries (heuristics stay bounded).
+- [x] `--prompt-style zero|fewshot|cot`: fewshot injects per-category
+      exemplar from `dataset/v1/_exemplars.yaml` (new `_`-sidecar
+      convention, hashed but not a task); cot appends a fixed suffix.
+      Style joins config fingerprint + cache key + results JSON.
+- [x] Per-category grouped bar chart in HTML scorecard (inline SVG,
+      zero deps) — appears when ≥2 runs or ≥2 categories.
+- [x] `--dry-run` token/cost estimate (4-chars/token heuristic) +
+      style/judge echo in the plan.
+
+## Round 4+ candidates
+- [ ] `karne price-estimate`: superseded — folded into `--dry-run`
+      (token + cost estimate). Remaining: richer model-aware output
+      estimate.
+- [ ] de/da clitic-vs-suffix: still needs morphology; revisit only with
+      a high-precision subset (e.g. after personal pronouns).
 - [ ] GitHub Actions CI (when public): pytest + dataset lint + build check.
 - [ ] `uv run` / `pipx` quickstart verification on a clean env.
-- [ ] Multimodal-free "OCR-like" generator: seeded noise injector to synthesize
-      more fatura/tutanak inputs deterministically.
+- [ ] Multimodal-free "OCR-like" generator: seeded noise injector to
+      synthesize more fatura/tutanak inputs deterministically.
 - [ ] Turkish tokenizer-aware length checks (BPE vs word discrepancy note).
 - [ ] `--judge-runs N`: judge each response N times, median verdict
       (mitigates single-judge variance).
-- [ ] Per-category radar/bar chart in HTML (inline SVG, still zero deps).
 - [ ] `karne diff --checks`: show per-check verdict flips between two runs
       (compare currently operates at task level).
+- [ ] Golden-file test for the HTML scorecard (structure, not bytes).
 
 ## Known limits / decisions
 - `json_fields` extracts first balanced `{...}` block; nested braces OK.

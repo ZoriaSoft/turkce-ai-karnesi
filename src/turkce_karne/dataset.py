@@ -147,6 +147,8 @@ def load_dataset(
     tasks: list[Task] = []
     seen: set[str] = set()
     for f in files:
+        if f.name.startswith("_"):
+            continue  # sidecar files (exemplars, metadata) hashed but not tasks
         try:
             data = yaml.safe_load(f.read_text(encoding="utf-8"))
         except yaml.YAMLError as e:
@@ -202,3 +204,38 @@ def categories(tasks: Iterable[Task]) -> dict[str, int]:
     for t in tasks:
         out[t.category] = out.get(t.category, 0) + 1
     return dict(sorted(out.items()))
+
+
+def load_exemplars(
+    path: str | Path | None = None,
+    *,
+    version: str = "v1",
+) -> dict[str, dict]:
+    """Load few-shot exemplars from ``_exemplars.yaml`` (optional sidecar).
+
+    Returns ``{category: {"user": ..., "assistant": ...}}``; ``"default"``
+    is the fallback for categories without a dedicated exemplar. Missing
+    file → empty dict (few-shot degrades to zero-shot for that run).
+    """
+    base = resolve_dataset_dir(path)
+    vdir = base / version
+    f = vdir / "_exemplars.yaml"
+    if not f.is_file():
+        return {}
+    data = yaml.safe_load(f.read_text(encoding="utf-8"))
+    if not isinstance(data, dict) or not isinstance(data.get("exemplars"), dict):
+        raise DatasetError(f"{f.name}: expected an 'exemplars' mapping")
+    out: dict[str, dict] = {}
+    for cat, ex in data["exemplars"].items():
+        if not isinstance(cat, str) or not _ID_PREFIX.match(cat) and cat != "default":
+            raise DatasetError(f"{f.name}: bad exemplar category {cat!r}")
+        if (
+            not isinstance(ex, dict)
+            or not isinstance(ex.get("user"), str)
+            or not isinstance(ex.get("assistant"), str)
+        ):
+            raise DatasetError(
+                f"{f.name}: exemplar {cat!r} needs 'user' and 'assistant' strings"
+            )
+        out[cat] = {"user": ex["user"], "assistant": ex["assistant"]}
+    return out

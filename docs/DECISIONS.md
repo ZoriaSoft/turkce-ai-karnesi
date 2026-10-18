@@ -44,3 +44,31 @@ cache/retry/rpm path so reruns stay reproducible and cheap.
 chi-square above). Mean deltas alone hide whether changes are real;
 a binary pass/fail discordance test is the standard answer for "did B
 actually improve on A" and needs no extra dependencies.
+
+## D9 — `spelling_rules` flags only unambiguous violations
+Turkish orthography is full of context-dependent rules (de/da clitic vs
+locative suffix needs parsing). The check deliberately covers only cases
+with no legal reading: the question particle glued to a word, wrong
+question-particle vowel, `-ki` separated after locatives/time words, and
+a fixed TDK error list (`herşey`, `yanlız`...). Anything morphology-
+dependent is skipped — a benchmark that sometimes penalizes correct
+answers is worse than one that misses some errors.
+
+## D10 — Prompt styles are fixed and dataset-bound
+`--prompt-style` is part of the config fingerprint and the cache key:
+`zero` (default), `fewshot` injects one worked example per category from
+`dataset/v1/_exemplars.yaml` (a sidecar file: hashed into the dataset
+digest, never loaded as a task), `cot` appends a fixed Turkish
+think-step-by-step suffix. Styles are never mixed inside a run; comparing
+`zero` vs `fewshot` scores across runs is how prompt sensitivity is
+measured.
+
+## D11 — Sidecar dataset files start with `_`
+Files matching `dataset/vN/_*.yaml` are hashed into the dataset sha256
+(so results stay reproducible) but skipped by the task loader. This is
+how exemplars ship without becoming tasks.
+
+## D12 — Charts are inline SVG, zero-asset
+The per-category bar chart in the scorecard is generated SVG inside the
+same single-file HTML — no JS, no fonts, no network. Consistent with the
+report's existing zero-dependency stance.

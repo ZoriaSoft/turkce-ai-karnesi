@@ -69,6 +69,10 @@ def build_parser() -> argparse.ArgumentParser:
                     help="also write an HTML scorecard (optional path)")
     rp.add_argument("--label", help="display name in reports")
     rp.add_argument("--system-prompt", help="override system prompt")
+    rp.add_argument("--prompt-style", choices=["zero", "fewshot", "cot"],
+                    default="zero",
+                    help="zero (default) | fewshot = one exemplar per "
+                    "category | cot = 'think step by step' suffix")
     rp.add_argument("--dry-run", action="store_true",
                     help="validate selection, print plan, no API calls")
 
@@ -171,6 +175,7 @@ def cmd_run(args) -> int:
                 else _split(args.judge_categories)
             )
         ),
+        prompt_style=args.prompt_style,
     )
     if args.dry_run:
         from .runner import select_tasks
@@ -178,10 +183,31 @@ def cmd_run(args) -> int:
         tasks = load_dataset(cfg.dataset_path, version=cfg.version)
         sel = select_tasks(tasks, cfg)
         print(f"model:    {cfg.model}")
+        print(f"style:    {cfg.prompt_style}")
+        if cfg.judge_model:
+            print(f"judge:    {cfg.judge_model} (w={cfg.judge_weight})")
         print(f"dataset:  {cfg.version} · {len(tasks)} items total")
         print(f"selected: {len(sel)} task(s)")
         for t in sel:
             print(f"  - {t.id} (d{t.difficulty}, {len(t.checks)} checks)")
+        # crude token estimate: ~4 chars/token for Turkish text in+out;
+        # output assumed at a typical few-hundred-token completion
+        chars = sum(
+            len(t.prompt) + len(t.input or "") + len(cfg.system_prompt)
+            for t in sel
+        )
+        est_in = chars // 4
+        est_out = min(cfg.max_tokens, 400) * len(sel)
+        print(f"est. tokens: ~{est_in} in · ~{est_out} out "
+              f"(rough 4-chars/token heuristic)")
+        from .client import estimate_cost_usd
+
+        cost = estimate_cost_usd(
+            cfg.model,
+            {"prompt_tokens": est_in, "completion_tokens": est_out},
+        )
+        if cost is not None:
+            print(f"est. cost:   ~${cost:.4f}")
         print(f"fingerprint: {cfg.fingerprint()}")
         return 0
 

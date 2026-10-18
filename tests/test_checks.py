@@ -285,3 +285,77 @@ def test_written_form_requires_correct():
         pass
     else:
         raise AssertionError("expected CheckSpecError")
+
+# ---- spelling_rules --------------------------------------------------------
+
+
+def test_spelling_clean_text_passes():
+    r = chk(
+        "spelling_rules",
+        "Bugünkü toplantıda her şey yolunda gitti; sen de geldin mi?",
+    )
+    assert r.passed and r.fraction == 1.0
+
+
+def test_spelling_mi_attached():
+    r = chk("spelling_rules", "Yarınki sınava geliyormusun?")
+    assert not r.passed
+    assert any("attached" in v for v in r.detail["violations"])
+
+
+def test_spelling_mi_harmony_wrong_vowel():
+    r = chk("spelling_rules", "Akşam mi geliyorsun?")
+    assert not r.passed
+    assert any("harmony" in v for v in r.detail["violations"])
+
+
+def test_spelling_mi_harmony_skips_foreign():
+    r = chk("spelling_rules", "Bu nota mi sesi değil, email mi geldi?")
+    # 'email mi' is fine and 'nota mi' is solfège — zero violations
+    assert r.passed
+
+
+def test_spelling_ki_separate():
+    r = chk("spelling_rules", "Bugün ki işler dün ki işlerden ağır.")
+    assert not r.passed and len(r.detail["violations"]) == 2
+
+
+def test_spelling_compound_traps():
+    r = chk("spelling_rules", "Yanlız kaldı, herşeyi kendi yaptı.")
+    assert not r.passed
+    assert len(r.detail["violations"]) == 2
+    # partial credit: 2 violations -> fraction 0.5
+    assert r.fraction == 0.5
+
+
+def test_spelling_does_not_flag_morphology():
+    # accusative/possessive endings and evidential suffix are legal
+    r = chk("spelling_rules", "Arabamı sattım, gelmişsin demişler.")
+    assert r.passed
+
+
+def test_spelling_rules_subset_and_allow():
+    r = chk(
+        "spelling_rules",
+        "Akşam mi geldi, evde ki eşya duruyor.",
+        rules=["mi_harmony"],
+    )
+    assert not r.passed and len(r.detail["violations"]) == 1
+    r2 = chk(
+        "spelling_rules",
+        "Akşam mi geldi?",
+        rules=["mi_harmony"],
+        allow=["akşam"],
+    )
+    assert r2.passed
+
+
+def test_spelling_rules_bad_rule_name():
+    from turkce_karne.errors import CheckSpecError
+
+    try:
+        chk("spelling_rules", "x", rules=["nope"])
+    except CheckSpecError:
+        pass
+    else:
+        raise AssertionError("expected CheckSpecError")

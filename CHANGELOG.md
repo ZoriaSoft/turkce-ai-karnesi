@@ -43,3 +43,34 @@ Format loosely follows Keep a Changelog; versions are dataset/tool aware.
   `judge` section (model, weight, judged/error counts, judge cost).
 - HTML scorecard: judge model/weight in run meta, det+judge breakdown
   per task, conditional footer text.
+
+## [Unreleased] — round 3 (2026-10-18)
+
+### Added
+- `spelling_rules` check + `turkce_karne/spelling.py`: four deterministic
+  TDK scans that only fire on unambiguous errors — question particle
+  glued to a word (`geliyormusun`, `gelmişmi`), wrong particle vowel
+  (`akşam mi`), `-ki` left separate after locative/ablative or time
+  adverbials (`evde ki`, `bugün ki`), and canonical fused-form
+  misspellings (`herşey`, `yanlız`, `yada`, `dahada`...). Spec knobs:
+  `rules` subset, `allow` stems, `max_violations`; partial credit
+  0.25 per violation, violation list in check detail.
+- `--prompt-style zero|fewshot|cot`: `fewshot` prepends one worked
+  example per category from `dataset/v1/_exemplars.yaml`; `cot` appends
+  a fixed "Önce adım adım düşün" suffix. Style enters the config
+  fingerprint, cache key and results JSON `config.prompt_style`.
+- `_`-prefixed dataset sidecar files: hashed into the dataset sha256
+  but never loaded as tasks (`load_exemplars`).
+- Per-category grouped bar chart in the HTML scorecard — inline SVG,
+  still zero external assets; shown when ≥2 runs or ≥2 categories.
+- `--dry-run` now echoes style/judge config and prints a rough
+  token + USD estimate (4-chars/token heuristic).
+
+### Changed
+- Dataset v1: `spelling_rules` added to all `eposta`, `resmi-yazi`,
+  `ozet` tasks and the three EN→TR `ceviri` tasks; two new
+  free-write `imla` tasks — 59 → 61 items. `items_sha256` and
+  `dataset` digests change; scores are not comparable with
+  pre-round-3 runs.
+- Turkish lexicon for `turkish_share` and the `mi_harmony` stem gate:
+  ~170 → ~780 entries.

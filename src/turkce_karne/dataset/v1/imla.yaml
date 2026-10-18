@@ -108,3 +108,42 @@ items:
     notes: >-
       B: 'okula da' ayrı; C: 'benim de' ayrı; D: 'İstanbul'a' kesme
       gerekir. A'da yöneltme eki ve 'da' bağlacı doğru.
+
+  - id: imla/serbest-duzelt
+    category: imla
+    difficulty: 3
+    prompt: >-
+      Aşağıdaki paragraftaki tüm yazım hatalarını düzelt ve yalnızca
+      düzeltilmiş paragrafı yaz.
+      "Yanlız kaldığım için herşeyi tek başıma yapmak zorunda kaldım.
+      Dün ki toplantıya geldimmi kimse bendeki anahtarı sormadı."
+    checks:
+      - type: written_form
+        correct: ["yalnız", "her şeyi", "dünkü", "geldim mi", "bendeki"]
+        incorrect: ["yanlız", "herşeyi", "dün ki", "geldimmi"]
+      - type: spelling_rules
+      - type: turkish_share
+        min: 0.5
+    notes: >-
+      Üç farklı hata sınıfı bir arada: yanlız->yalnız, herşeyi->her şeyi
+      (ayrı yazım), dün ki->dünkü (-ki eki), geldimmi->geldim mi (soru
+      eki), bendeki zaten doğru.
+
+  - id: imla/mi-soru-cumleleri
+    category: imla
+    difficulty: 2
+    prompt: >-
+      Aşağıdaki soru cümlelerini doğru yazım ile yeniden yaz; her cümle
+      kendi satırında olsun.
+      "Yarınki sınava geliyormusun? Baban evdemi? Toplantıya katıldın mı?"
+    checks:
+      - type: written_form
+        correct: ["geliyor musun", "evde mi", "katıldın mı"]
+        incorrect: ["geliyormusun", "evdemi"]
+      - type: spelling_rules
+      - type: count
+        unit: lines
+        eq: 3
+    notes: >-
+      Soru eki ayrı yazımı + -ki eki (yarınki zaten doğru kalmalı).
+      'evde mi' hem ek uyumu hem ayrı yazım testi.

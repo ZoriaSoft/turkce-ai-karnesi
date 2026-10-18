@@ -56,7 +56,52 @@ def render_html(runs: dict | list[dict], *, title: str | None = None) -> str:
         for c in r.get("summary", {}).get("by_category", {}).values():
             c["_pct"] = _pct(c.get("score", 0))
     tpl = _env.get_template("scorecard.html.j2")
-    return tpl.render(runs=runs, title=title or "turkce-karne scorecard")
+    return tpl.render(
+        runs=runs,
+        title=title or "turkce-karne scorecard",
+        chart=_category_chart(runs),
+    )
+
+
+# ---------------------------------------------------------------------------
+# inline-SVG per-category comparison chart
+
+_CHART_COLORS = [
+    "#4c9be0", "#35c46f", "#e0b53c", "#e4574c", "#9a6fd0", "#4cc4b9",
+    "#d97fb0", "#8fb14c",
+]
+
+
+def _category_chart(runs: list[dict]) -> dict | None:
+    """Build a grouped horizontal-bar chart spec for the template.
+
+    Returns {cats: [...], runs: [...], bars: {cat: {run_i: score}},
+    colors: [...]} or None when there is nothing worth plotting (no
+    categories, or a single run with a single category).
+    """
+    cats: list[str] = []
+    for r in runs:
+        for c in r.get("summary", {}).get("by_category", {}):
+            if c not in cats:
+                cats.append(c)
+    cats.sort()
+    if not cats or (len(runs) < 2 and len(cats) < 2):
+        return None
+    bars: dict[str, dict[int, float]] = {c: {} for c in cats}
+    for i, r in enumerate(runs):
+        for c, cs in r.get("summary", {}).get("by_category", {}).items():
+            bars[c][i] = cs.get("score", 0)
+    labels = [
+        (r.get("label") or r.get("model") or f"run {i + 1}")[:24]
+        for i, r in enumerate(runs)
+    ]
+    return {
+        "cats": cats,
+        "labels": labels,
+        "bars": bars,
+        "colors": _CHART_COLORS[: len(runs)],
+        "n_runs": len(runs),
+    }
 
 
 def write_html(

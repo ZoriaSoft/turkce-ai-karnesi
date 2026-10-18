@@ -18,6 +18,7 @@ items:
         terms: ["bilim", "şenlik"]
       - type: turkish_share
         min: 0.6
+      - type: spelling_rules
 
   - id: ozet/iade-politikasi
     category: ozet
@@ -40,6 +41,7 @@ items:
         terms: ["14 gün"]
       - type: turkish_share
         min: 0.6
+      - type: spelling_rules
 
   - id: ozet/haber
     category: ozet
@@ -66,6 +68,7 @@ items:
         min: 8
       - type: turkish_share
         min: 0.6
+      - type: spelling_rules
 
   - id: ozet/toplanti-tutanagi
     category: ozet
@@ -88,6 +91,7 @@ items:
         count: 3
       - type: turkish_share
         min: 0.5
+      - type: spelling_rules
 
   - id: ozet/makale-oz
     category: ozet
@@ -113,6 +117,7 @@ items:
         max: 30
       - type: turkish_share
         min: 0.6
+      - type: spelling_rules
 
   - id: ozet/yonetmelik
     category: ozet
@@ -136,6 +141,7 @@ items:
         mode: regex
       - type: turkish_share
         min: 0.6
+      - type: spelling_rules
 
   - id: ozet/site-tutanagi
     category: ozet
@@ -157,3 +163,4 @@ items:
         max: 40
       - type: turkish_share
         min: 0.6
+      - type: spelling_rules

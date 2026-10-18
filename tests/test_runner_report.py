@@ -129,3 +129,92 @@ def test_system_prompt_sent(dataset_dir, fake_openai):
     client.close()
     msgs = state.requests[0]["messages"]
     assert msgs[0]["role"] == "system" and msgs[0]["content"] == "ÖZEL SISTEM"
+
+
+def test_prompt_style_zero_is_default(dataset_dir, fake_openai):
+    state, base = fake_openai
+    cfg = RunConfig(
+        model="fake-model", dataset_path=str(dataset_dir), cache_dir=None,
+    )
+    client = OpenAICompatClient(base, timeout=10)
+    run_eval(cfg, client=client)
+    client.close()
+    msgs = state.requests[0]["messages"]
+    assert [m["role"] for m in msgs] == ["system", "user"]
+
+
+def test_prompt_style_cot_appends_suffix(dataset_dir, fake_openai):
+    state, base = fake_openai
+    cfg = RunConfig(
+        model="fake-model",
+        dataset_path=str(dataset_dir),
+        prompt_style="cot",
+        cache_dir=None,
+    )
+    client = OpenAICompatClient(base, timeout=10)
+    run_eval(cfg, client=client)
+    client.close()
+    user = state.requests[0]["messages"][-1]["content"]
+    assert "adım adım" in user
+
+
+def test_prompt_style_fewshot_inserts_exemplar(dataset_dir, fake_openai):
+    state, base = fake_openai
+    # write a sidecar exemplars file into the temp dataset
+    import pathlib
+
+    (pathlib.Path(dataset_dir) / "v1" / "_exemplars.yaml").write_text(
+        """exemplars:
+  demo:
+    user: "ÖRNEK SORU"
+    assistant: "ÖRNEK CEVAP"
+""",
+        encoding="utf-8",
+    )
+    cfg = RunConfig(
+        model="fake-model",
+        dataset_path=str(dataset_dir),
+        prompt_style="fewshot",
+        cache_dir=None,
+    )
+    client = OpenAICompatClient(base, timeout=10)
+    run_eval(cfg, client=client)
+    client.close()
+    msgs = state.requests[0]["messages"]
+    roles = [m["role"] for m in msgs]
+    assert roles == ["system", "user", "assistant", "user"]
+    assert msgs[1]["content"] == "ÖRNEK SORU"
+    assert msgs[2]["content"] == "ÖRNEK CEVAP"
+
+
+def test_prompt_style_bad_value(dataset_dir, fake_openai):
+    from turkce_karne.errors import ClientError
+
+    cfg = RunConfig(
+        model="fake-model",
+        dataset_path=str(dataset_dir),
+        prompt_style="weird",
+        cache_dir=None,
+    )
+    with pytest.raises(ClientError):
+        run_eval(cfg)
+
+
+def test_fingerprint_changes_with_prompt_style(dataset_dir):
+    a = RunConfig(model="m", dataset_path=str(dataset_dir))
+    b = RunConfig(
+        model="m", dataset_path=str(dataset_dir), prompt_style="cot"
+    )
+    assert a.fingerprint() != b.fingerprint()
+
+
+def test_html_shows_category_chart(dataset_dir, fake_openai, tmp_path):
+    state, base = fake_openai
+    state.add_rule("Bir sayı yaz", "42")
+    state.add_rule("Cevap: 7", "Cevap: 7")
+    r1 = _run(dataset_dir, base, state)
+    state.default_content = "no"
+    r2 = _run(dataset_dir, base, state)
+    html = render_html([r1, r2])
+    # two demo tasks in one category — chart only if ≥2 runs or ≥2 cats
+    assert "<svg" in html and "<rect" in html

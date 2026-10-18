@@ -21,6 +21,7 @@ items:
         pattern: "1[48]\\s+Ekim\\s+2026|Ekim\\s+2026"
       - type: turkish_share
         min: 0.5
+      - type: spelling_rules
 
   - id: resmi-yazi/belediye-sikayet
     category: resmi-yazi
@@ -39,6 +40,7 @@ items:
       - type: count
         unit: sentences
         min: 2
+      - type: spelling_rules
 
   - id: resmi-yazi/fatura-itiraz
     category: resmi-yazi
@@ -57,6 +59,7 @@ items:
         terms: ["tabii ki", "memnuniyetle"]
       - type: turkish_share
         min: 0.5
+      - type: spelling_rules
 
   - id: resmi-yazi/izin-dilekcesi
     category: resmi-yazi
@@ -77,6 +80,7 @@ items:
         terms: ["Müdür", "Sayın", "Zeynep"]
       - type: turkish_share
         min: 0.5
+      - type: spelling_rules
 
   - id: resmi-yazi/kayip-bildirimi
     category: resmi-yazi
@@ -97,6 +101,7 @@ items:
         min: 3
       - type: turkish_share
         min: 0.5
+      - type: spelling_rules
 
   - id: resmi-yazi/veli-toplantisi
     category: resmi-yazi
@@ -115,6 +120,7 @@ items:
         terms: ["Sayın", "toplant"]
       - type: turkish_share
         min: 0.5
+      - type: spelling_rules
 
   - id: resmi-yazi/yoklama-tutanagi
     category: resmi-yazi
@@ -136,3 +142,4 @@ items:
         min: 4
       - type: turkish_share
         min: 0.5
+      - type: spelling_rules

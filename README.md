@@ -34,7 +34,7 @@ per-task expandable responses.
 
 ## What gets tested
 
-59 original tasks (dataset v1, CC-BY-4.0) across 8 categories:
+61 original tasks (dataset v1, CC-BY-4.0) across 8 categories:
 
 | Category      | What it measures                                   |
 |---------------|----------------------------------------------------|
@@ -49,9 +49,17 @@ per-task expandable responses.
 
 Every task is scored by checks like `contains`, `word_order`,
 `every_line_matches`, `json_fields`, `count`, `turkish_share`,
-`answer_in`, `written_form` — all deterministic and offline. A task's
-score is the mean of its check verdicts (partial credit for
-`json_fields`, `turkish_share`, `written_form`).
+`answer_in`, `written_form`, `spelling_rules` — all deterministic and
+offline. A task's score is the mean of its check verdicts (partial credit
+for `json_fields`, `turkish_share`, `written_form`, `spelling_rules`).
+
+`spelling_rules` scans the response for unambiguous TDK violations:
+the question particle glued to a word (`geliyormusun`), wrong question-
+particle vowel (`akşam mi`), separated `-ki` after locatives/time words
+(`bugün ki`), and canonical fused-form errors (`herşey`, `yanlız`,
+`yada`). Morphology is not modeled — the check only fires on cases with
+no legal reading, and task specs can subset rules, `allow` stems, or
+tolerate `max_violations`.
 
 Optionally, a second model can act as a judge on the free-text
 categories (`--judge-model`), adding a fixed-rubric score that blends
@@ -82,15 +90,20 @@ karne list [--categories imla,ceviri]     # show tasks
 karne validate                            # dataset + check-spec lint
 karne run --model M [--tasks id1,id2] [--sample 10 --seed 7]
           [--repeat 3] [--concurrency 4] [--rpm 60]
+          [--prompt-style zero|fewshot|cot]
           [--judge-model J --judge-weight 0.4]
           [--out results/x.json] [--html]
 karne report a.json b.json --out compare.html   # multi-model scorecard
 karne compare a.json b.json [--json]            # paired diff + flips
 ```
 
-Useful flags: `--dry-run` prints the selection without calling the API;
-`--label` names a run in reports; `--system-prompt` overrides the default
-Turkish system prompt.
+Useful flags: `--dry-run` prints the selection plus a rough token/cost
+estimate without calling the API; `--label` names a run in reports;
+`--system-prompt` overrides the default Turkish system prompt;
+`--prompt-style fewshot` prepends a fixed per-category exemplar
+(`dataset/v1/_exemplars.yaml`) and `--prompt-style cot` appends a fixed
+"think step by step" suffix — both change the cache key and the config
+fingerprint, so runs stay comparable within a style.
 
 ### LLM judge
 
@@ -149,7 +162,8 @@ contributions welcome under CC-BY-4.0.
 - `json_fields` compares the expected subset; extra keys in the response
   are ignored.
 - Turkish morphology isn't modeled — de/da/ki correctness is tested via
-  authored tasks and `written_form`, not a built-in grammar check.
+  authored tasks, `written_form`, and the high-precision `spelling_rules`
+  scans (unambiguous cases only); a general grammar check stays out of scope.
 
 
 ## Development

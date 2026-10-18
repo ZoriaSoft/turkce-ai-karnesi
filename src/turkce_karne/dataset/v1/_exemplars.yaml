@@ -1,0 +1,93 @@
+# Few-shot exemplars for `--prompt-style fewshot`.
+# Sidecar file (leading underscore): hashed into the dataset digest but
+# never loaded as a task. One compact worked example per category —
+# chosen to demonstrate output FORMAT, not to leak task answers.
+exemplars:
+  default:
+    user: >-
+      "3 + 4" işleminin sonucunu yaz. Yalnızca cevabı yaz.
+    assistant: "7"
+
+  resmi-yazi:
+    user: >-
+      Aşağıdaki bilgilerle resmi dilekçe formatına uygun bir dilekçe yaz:
+      Kurum: Ege Lisesi Müdürlüğü. Konu: Öğle arası izin talebi.
+      Ad Soyad: Can Yılmaz. Tarih: 5 Kasım 2026.
+      Yalnızca dilekçe metnini yaz.
+    assistant: |
+      EGE LİSESİ MÜDÜRLÜĞÜNE
+
+      Sayın Müdürüm,
+
+      Okulunuz öğrencisi olarak, sağlık randevum nedeniyle 6 Kasım 2026
+      günü öğle arasında okuldan ayrılmak için izninizi talep ediyorum.
+
+      Gereğini saygılarımla arz ederim.
+
+      5 Kasım 2026
+      Can Yılmaz
+
+  eposta:
+    user: >-
+      Proje teslimini bir hafta ertelemek isteyen kısa bir e-posta yaz.
+      Karşı taraf: Aylin Hanım. "Konu:" satırı ile başla.
+    assistant: |
+      Konu: Proje Teslim Tarihi Hakkında
+
+      Sayın Aylin Hanım,
+
+      Devam eden projemizin teslim tarihini bir hafta ertelemenizi rica
+      ediyorum. Ek süre, kalan testlerin tamamlanması için gereklidir.
+
+      Anlayışınız için teşekkür ederim.
+
+      Saygılarımla,
+      Deniz Kara
+
+  ozet:
+    user: >-
+      Aşağıdaki metni en fazla 20 kelimeyle özetle.
+      ---
+      Belediye, parktaki eski aydınlatma direklerini LED sistemle
+      değiştirdi. Tasarruf hedefi yüzde 40. Çalışma üç hafta sürdü.
+    assistant: >-
+      Belediye, park aydınlatmalarını LED'e çevirerek üç haftada yüzde 40
+      tasarruf hedefledi.
+
+  cikartim:
+    user: >-
+      Aşağıdaki metinden "tutar" ve "tarih" alanlarını JSON olarak çıkar.
+      Yalnızca JSON yaz.
+      ---
+      12.03.2026 tarihli 450 TL tutarındaki ödeme alındı.
+    assistant: '{"tutar": 450, "tarih": "2026-03-12"}'
+
+  imla:
+    user: >-
+      Aşağıdaki cümledeki yazım hatasını düzelt ve yalnızca düzeltilmiş
+      cümleyi yaz.
+      "Benimde sana söyleyeceklerim var."
+    assistant: "Benim de sana söyleyeceklerim var."
+
+  yonerge:
+    user: >-
+      Aşağıdaki üç maddeyi "• " önekiyle listele; toplam 10 kelimeyi geçme:
+      sabah toplantısı, öğle yemeği, akşam raporu.
+    assistant: |
+      • sabah toplantısı
+      • öğle yemeği
+      • akşam raporu
+
+  ceviri:
+    user: >-
+      Aşağıdaki cümleyi İngilizceye çevir. Yalnızca çeviriyi yaz.
+      "Toplantı yarına ertelendi."
+    assistant: "The meeting was postponed to tomorrow."
+
+  akl-yurutme:
+    user: >-
+      Ali 5 elma aldı, 2'sini yedi. Kaç elması kaldı? Son satırda
+      "Cevap: X" yaz.
+    assistant: |-
+      5 elmadan 2'si yenirse 3 elma kalır.
+      Cevap: 3
