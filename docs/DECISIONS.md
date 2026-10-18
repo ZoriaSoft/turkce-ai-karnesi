@@ -72,3 +72,29 @@ how exemplars ship without becoming tasks.
 The per-category bar chart in the scorecard is generated SVG inside the
 same single-file HTML — no JS, no fonts, no network. Consistent with the
 report's existing zero-dependency stance.
+
+## D13 — Repeats are real generations, not cache echoes
+`--repeat N` used to duplicate the task list and serve reps 2..N from
+the cache — the "stability" signal was meaningless. Now each rep>0 gets
+a `cache_salt` on the model call (rep 0 reuses the plain cache entry),
+so every rep is an independent sample. Compare pairs `id@repN`; the
+run summary lists tasks whose verdict flips across reps.
+
+## D14 — `json_fields` `strict` means exact key-set
+The `strict` spec key existed in tasks since round 1 but was never read.
+It now means: no response keys outside `expected` (nested-suffix alias
+matches don't count as extra — a wrapper object holding the right
+fields stays legal). Extras fail the check and land in `detail.extra`.
+The alternative (fraction-penalize extras) was rejected: `strict` on
+an extraction task means "only JSON with these fields", a binary ask.
+
+## D15 — OCR corpus is generated, not hand-written
+Bad-scan inputs are synthesized from templates by
+`turkce_karne/ocrnoise.py` + `scripts/gen_ocr_tasks.py`: field
+placeholders render equivalence-preserving display forms (TR/EN number
+formats, alternate date spellings, case drift) so canonical expected
+values still score, while surrounding text gets seeded noise
+(diacritic folding, O/0, l/1, S/5 misreads, spacing jitter). One seed
+per template keeps the YAML byte-reproducible; `scripts/gen_ocr_tasks.py
+--check` proves the committed file is fresh. Hand-writing the same
+noise would be unreviewable; the generator is the reviewable artifact.
