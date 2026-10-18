@@ -11,6 +11,8 @@ from __future__ import annotations
 
 import math
 
+from .stats import bootstrap_mean_ci
+
 PASS_THRESHOLD = 0.999
 
 
@@ -173,6 +175,17 @@ def compare_runs(a: dict, b: dict, *, include_checks: bool = False) -> dict:
         "improvements": improvements,
         "regressions": regressions,
         "mean_delta": round(sum(deltas) / len(deltas), 4) if deltas else 0.0,
+        # paired bootstrap on the mean score delta — seed derives from the
+        # deltas themselves so the same two files always give the same CI
+        "delta_ci95": (
+            [round(delta_ci[0], 4), round(delta_ci[1], 4)]
+            if (
+                delta_ci := bootstrap_mean_ci(
+                    [(d,) for d in deltas], tag="delta"
+                )
+            )
+            else None
+        ),
         "mcnemar": {"p": round(p, 4), "method": method},
         "by_category": cat_rows,
         "tasks": rows,
@@ -206,6 +219,12 @@ def format_compare(rep: dict) -> str:
     )
     m = rep["mcnemar"]
     lines.append(f"McNemar ({m['method']}): p = {m['p']}")
+    if rep.get("delta_ci95"):
+        lo, hi = rep["delta_ci95"]
+        lines.append(
+            f"delta 95% CI: [{lo * 100:+.1f}%, {hi * 100:+.1f}%]"
+            "  (paired bootstrap)"
+        )
     lines.append("")
     lines.append("by category:")
     for c, v in rep["by_category"].items():

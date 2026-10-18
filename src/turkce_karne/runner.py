@@ -32,6 +32,7 @@ from .dataset import (
 from .errors import ClientError
 from .judge import JudgeRunner
 from .model import CheckResult, Task, TaskScore
+from .stats import bootstrap_mean_ci
 
 DEFAULT_SYSTEM = (
     "Sen yardımcı bir asistansın. Kullanıcının yönergesini aynen uygula; "
@@ -357,18 +358,23 @@ def run_eval(
     if own_judge_client:
         judge_client.close()
     per_task = [s.to_dict() for s in scores]
+    task_scores: dict[str, list[float]] = {}
+    for s in scores:
+        task_scores.setdefault(s.id, []).append(s.score)
     # tasks whose pass/fail verdict flips between repetitions — a cheap
     # signal for model nondeterminism when --repeat > 1
     rep_unstable: list[str] = []
     if cfg.repeat > 1:
-        rep_groups: dict[str, list[float]] = {}
-        for s in scores:
-            rep_groups.setdefault(s.id, []).append(s.score)
         rep_unstable = sorted(
             tid
-            for tid, v in rep_groups.items()
+            for tid, v in task_scores.items()
             if len({x >= 0.999 for x in v}) > 1
         )
+    # cluster bootstrap: reps of one task stay together, so the interval
+    # reflects task-level uncertainty, not sampling noise inside reps
+    ci = bootstrap_mean_ci(
+        [task_scores[k] for k in sorted(task_scores)], tag="score"
+    )
     n = len(scores)
     mean = sum(s.score for s in scores) / n if n else 0.0
     cat_sums: dict[str, list[float]] = {}
@@ -439,6 +445,7 @@ def run_eval(
         },
         "summary": {
             "score": round(mean, 4),
+            "ci95": [round(ci[0], 4), round(ci[1], 4)] if ci else None,
             "n": n,
             "errors": sum(1 for s in scores if s.error),
             "by_category": by_cat,
@@ -453,6 +460,17 @@ def run_eval(
     if cfg.repeat > 1:
         results["summary"]["n_rep_unstable"] = len(rep_unstable)
         results["summary"]["rep_unstable"] = rep_unstable
+        # best/worst-rep rollups bound how much of the mean is sampling luck
+        results["summary"]["score_worst_rep"] = round(
+            sum(min(v) for v in task_scores.values())
+            / len(task_scores),
+            4,
+        )
+        results["summary"]["score_best_rep"] = round(
+            sum(max(v) for v in task_scores.values())
+            / len(task_scores),
+            4,
+        )
     if judge is not None:
         results["judge"] = {
             "model": cfg.judge_model,

@@ -28,11 +28,15 @@ TDK imla taraması) puanlanır — aynı uç + aynı veri seti = aynı puan.
 `karne run --model X --judge-model Y` (ağırlık `--judge-weight`, varsayılan
 0,4; `--judge-runs N` ile her çıktı N kez puanlanıp ölçüt bazında medyan
 alınır — tek puanlık sapmayı azaltır). İki koşuyu karşılaştırmak için:
-`karne compare a.json b.json` — görev bazında fark, iyileşme/gerileme ve
-McNemar anlamlılık testi; `--checks` kontrol bazında geçme/kalma
+`karne compare a.json b.json` — görev bazında fark, iyileşme/gerileme,
+McNemar anlamlılık testi ve ortalama fark için eşleştirilmiş bootstrap
+%95 güven aralığı (`delta_ci95`); `--checks` kontrol bazında geçme/kalma
 değişimlerini de listeler.
 İstem stili değiştirilebilir: `--prompt-style zero|fewshot|cot`. Kararlılığı
 ölçmek için `--repeat N` her görevi N kez gerçekten üretir; özet, tekrarlar
-arasında sonucu değişen görevleri `rep_unstable` olarak listeler.
+arasında sonucu değişen görevleri `rep_unstable` olarak listeler ve
+`score_worst_rep`/`score_best_rep` ile dağılımı sınırlar. `summary.ci95`
+ana puana tohumu veriden türetilen küme-bootstrap %95 güven aralığı
+ekler; `karne report --format md` Markdown karne tablosu üretir.
 
 Detaylar ve veri seti şeması için: [`README.md`](README.md)

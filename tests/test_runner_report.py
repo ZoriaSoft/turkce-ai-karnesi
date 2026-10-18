@@ -272,3 +272,54 @@ def test_repeat_scores_stay_sorted(dataset_dir, fake_openai):
     assert results["summary"]["score"] == 1.0
     html = render_html(results)
     assert "@rep1" in html and "per task" in html
+
+
+# ---- round 6: seeded bootstrap CI + rep rollups ----------------------------
+
+
+def test_summary_ci95_present_and_deterministic(dataset_dir, fake_openai):
+    state, base = fake_openai
+    state.add_rule("Bir sayı yaz", "hiç")
+    state.add_rule("Cevap: 7", "Cevap: 7")
+    r1 = _run(dataset_dir, base, state)
+    r2 = _run(dataset_dir, base, state)
+    ci = r1["summary"]["ci95"]
+    assert ci == r2["summary"]["ci95"]
+    assert 0.0 <= ci[0] <= ci[1] <= 1.0
+
+
+def test_repeat_rollups_bound_rep_variance(dataset_dir, fake_openai):
+    state, base = fake_openai
+    n = {"t1": 0}
+
+    def responder(messages):
+        user = next(m["content"] for m in messages if m["role"] == "user")
+        if "Bir sayı" in user:
+            n["t1"] += 1
+            return "42" if n["t1"] == 1 else "no answer"
+        return "Cevap: 7"
+
+    state.responder = responder
+    results = _run(dataset_dir, base, state, repeat=3)
+    s = results["summary"]
+    # t1 reps [1,0,0], t2 reps [1,1,1]: score = mean over all 6 rep scores
+    # (per reps, by design); rollups bound per-task mean/worst/best spread
+    assert s["score"] == pytest.approx(4 / 6, abs=1e-3)
+    assert s["score_worst_rep"] == pytest.approx(0.5)
+    assert s["score_best_rep"] == pytest.approx(1.0)
+    html = render_html(results)
+    assert "worst/best rep" in html and "95% CI" in html
+
+
+def test_html_scorecard_structure(dataset_dir, fake_openai):
+    state, base = fake_openai
+    results = _run(dataset_dir, base, state)
+    html = render_html(results)
+    # structural invariants, not bytes: self-contained + required sections
+    assert html.lstrip().lower().startswith("<!doctype html>")
+    for anchor in ("Leaderboard", "Tasks", "Fingerprint", "Dataset"):
+        assert anchor in html
+    assert html.count("<details>") == 2
+    # zero external assets: no remote script/link/img refs
+    assert 'src="http' not in html and 'href="http' not in html
+    assert "<svg" not in html  # 1 run x 1 category -> chart skipped

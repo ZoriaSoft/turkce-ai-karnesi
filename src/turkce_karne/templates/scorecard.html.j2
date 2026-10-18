@@ -140,16 +140,22 @@
   <h2>{{ r.label or r.model }}</h2>
   <div class="panel">
     <div class="kv">
-      <div><b>Score</b>{{ r.summary._pct }} ({{ r.summary.n }} tasks)</div>
+      <div><b>Score</b>{{ r.summary._pct }} ({{ r.summary.n }} tasks)
+        {% if r.summary.ci95 %}<div class="meta">95% CI
+          {{ "%.1f"|format(r.summary.ci95[0] * 100) }}–{{ "%.1f"|format(r.summary.ci95[1] * 100) }}%</div>{% endif %}</div>
       <div><b>Dataset</b>v{{ r.dataset.version }} · sha {{ r.dataset.sha256[:12] }}</div>
       <div><b>Fingerprint</b>{{ r.config_fingerprint }}</div>
       <div><b>Tokens</b>in {{ r.summary.tokens_in or 0 }} · out {{ r.summary.tokens_out or 0 }}</div>
       <div><b>Cache hits</b>{{ r.summary.cache_hits }}</div>
-      {% if r.summary.n_rep_unstable %}
-      <div><b>Reps</b>{{ r.config.repeat }} per task · <span class="ck-no">{{ r.summary.n_rep_unstable }} unstable</span>
-        <span class="meta">({{ r.summary.rep_unstable | join(", ") }})</span></div>
-      {% elif r.config.repeat and r.config.repeat > 1 %}
-      <div><b>Reps</b>{{ r.config.repeat }} per task · all stable</div>
+      {% if r.config.repeat and r.config.repeat > 1 %}
+      <div><b>Reps</b>{{ r.config.repeat }} per task
+        {%- if r.summary.n_rep_unstable %} · <span class="ck-no">{{ r.summary.n_rep_unstable }} unstable</span>
+        <span class="meta">({{ r.summary.rep_unstable | join(", ") }})</span>
+        {%- else %} · all stable{% endif %}
+        {%- if r.summary.score_worst_rep is not none %}
+        <div class="meta">worst/best rep
+          {{ "%.1f"|format(r.summary.score_worst_rep * 100) }}–{{ "%.1f"|format(r.summary.score_best_rep * 100) }}%</div>
+        {% endif %}</div>
       {% endif %}
       {% if r.judge %}
       <div><b>Judge</b>{{ r.judge.model }} w={{ r.judge.weight }} · {{ r.judge.n_judged }} judged{{ ' · %d errors' % r.judge.n_judge_errors if r.judge.n_judge_errors }}</div>

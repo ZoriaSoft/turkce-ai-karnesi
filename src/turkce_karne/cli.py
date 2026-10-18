@@ -93,9 +93,11 @@ def build_parser() -> argparse.ArgumentParser:
                     help="judge each response N times, median verdict "
                     "(1-9, default 1; mitigates judge variance)")
 
-    hp = sub.add_parser("report", help="Render results JSON(s) to HTML")
+    hp = sub.add_parser("report", help="Render results JSON(s) to HTML or Markdown")
     hp.add_argument("results", nargs="+", help="results JSON file(s)")
-    hp.add_argument("--out", required=True, help="output HTML path")
+    hp.add_argument("--out", help="output path (required for html; "
+                    "md prints to stdout when omitted)")
+    hp.add_argument("--format", choices=["html", "md"], default="html")
     hp.add_argument("--title", help="report title")
 
     cp = sub.add_parser("compare", help="Paired diff of two results JSONs")
@@ -205,16 +207,36 @@ def cmd_run(args) -> int:
         for t, rep in sel:
             if rep == 0:
                 print(f"  - {t.id} (d{t.difficulty}, {len(t.checks)} checks)")
-        # crude token estimate: ~4 chars/token for Turkish text in+out;
-        # output assumed at a typical few-hundred-token completion
+        # output estimate: honor explicit length requirements in count
+        # checks; otherwise scale with task difficulty. Still a heuristic,
+        # not a tokenizer — treat as an order-of-magnitude figure.
+        def _est_tokens(t) -> int:
+            best = 0
+            for c in t.checks:
+                if c.get("type") != "count":
+                    continue
+                unit = c.get("unit", "words")
+                target = c.get("eq") or (
+                    (c.get("min", 0) + c.get("max", c.get("min", 0))) / 2
+                    if (c.get("min") is not None or c.get("max") is not None)
+                    else 0
+                )
+                factor = {"words": 1.4, "sentences": 18,
+                          "lines": 12, "chars": 0.3}.get(unit, 1.0)
+                best = max(best, int(target * factor))
+            if best:
+                return min(cfg.max_tokens, max(best, 40))
+            return min(cfg.max_tokens, 180 + t.difficulty * 110)
+
         chars = sum(
             len(t.prompt) + len(t.input or "") + len(cfg.system_prompt)
             for t, _ in sel
         )
         est_in = chars // 4
-        est_out = min(cfg.max_tokens, 400) * len(sel)
+
+        est_out = sum(_est_tokens(t) for t, _ in sel)
         print(f"est. tokens: ~{est_in} in · ~{est_out} out "
-              f"(rough 4-chars/token heuristic)")
+              f"(heuristic: count-check targets or difficulty)")
         from .client import estimate_cost_usd
 
         cost = estimate_cost_usd(
@@ -239,11 +261,18 @@ def cmd_run(args) -> int:
     s = results["summary"]
     print(f"model:  {results['model']}")
     print(f"score:  {s['score'] * 100:.1f}%  ({s['n']} tasks, {s['errors']} errors)")
+    if s.get("ci95"):
+        print(f"        95% CI [{s['ci95'][0] * 100:.1f}%, "
+              f"{s['ci95'][1] * 100:.1f}%]")
     for cat, cs in s["by_category"].items():
         print(f"  {cat:<16} {cs['score'] * 100:5.1f}%  n={cs['n']}")
     if s.get("n_rep_unstable"):
         print(f"unstable: {s['n_rep_unstable']} task(s) flip verdict "
               f"across reps: {', '.join(s['rep_unstable'][:6])}")
+    if s.get("score_worst_rep") is not None:
+        print(f"        worst/best rep "
+              f"{s['score_worst_rep'] * 100:.1f}%–"
+              f"{s['score_best_rep'] * 100:.1f}%")
     if s.get("est_cost_usd") is not None:
         print(f"cost:   ~${s['est_cost_usd']:.4f}")
     print(f"time:   {s['elapsed_ms'] / 1000:.1f}s  cache hits: {s['cache_hits']}")
@@ -256,6 +285,19 @@ def cmd_run(args) -> int:
 
 def cmd_report(args) -> int:
     runs = runs_from_files(args.results)
+    if args.format == "md":
+        from .report import render_markdown
+
+        text = render_markdown(runs, title=args.title)
+        if args.out:
+            Path(args.out).write_text(text, encoding="utf-8")
+            print(f"wrote: {args.out} ({len(runs)} run(s))")
+        else:
+            print(text, end="")
+        return 0
+    if not args.out:
+        print("report: --out is required for --format html", file=sys.stderr)
+        return 2
     write_html(runs, args.out, title=args.title)
     print(f"wrote: {args.out} ({len(runs)} run(s))")
     return 0

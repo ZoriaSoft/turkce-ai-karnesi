@@ -1,13 +1,14 @@
 # Memory — turkce-ai-karnesi
 
-## State (after round 5, 2026-10-18)
-- 8 rounds planned; 5 done. Suite green on sandbox: 138 tests.
-- Dataset: 69 tasks / 8 categories (incl. 8 generated `cikartim-ocr.yaml`).
-- Scoring: deterministic checks + optional judge; `--repeat N` = N real
-  generations (cache-salt), `rep_unstable` summary; compare pairs `id@repN`.
-- Next candidates (ROADMAP): HTML golden-file test, CI when public,
-  `uv run`/`pipx` quickstart check, rep-aware score aggregation,
-  more OCR templates, `--dry-run` model-aware estimate.
+## State (after round 6, 2026-10-18)
+- 8 rounds planned; 6 done. Suite green on sandbox: 153 tests.
+- New: `turkce_karne/stats.py` seeded cluster-bootstrap → `summary.ci95`
+  + `compare` `delta_ci95`; rep rollups `score_worst_rep`/`best_rep`;
+  `karne report --format md`; `.github/workflows/ci.yml`; smarter
+  `--dry-run` output estimate (count-check targets / difficulty).
+- Next candidates (ROADMAP): per-check-type pass-rate table, >2-run
+  compare, `uv run`/`pipx` quickstart check, more OCR templates,
+  tokenizer-aware length checks.
 
 ## Environment
 - Tests/builds ONLY on sandbox: `cirak-run "python3 -m venv .venv &&
@@ -26,8 +27,13 @@
   it drops them (lost the judge template row once; restored).
 - `_run` test helper hardcodes `concurrency=1`; pass overrides via
   `**{"concurrency": 1, **kw}` pattern (already fixed).
+- Jinja2 `Undefined is not none` → true: `report` crashed on results
+  JSONs missing new summary keys (`est_cost_usd`, `score_worst_rep`).
+  `render_html` now setdefaults every template-touched key. Guard:
+  `test_report_html_tolerates_sparse_json`.
 
 ## Decisions
-See `docs/DECISIONS.md` (D1–D15). Highlights: deterministic checks are
+See `docs/DECISIONS.md` (D1–D16). Highlights: deterministic checks are
 ground truth; judge is bounded/advisory; `strict` = exact JSON key-set;
-repeats measure sampling stability via cache-salt, not cache echoes.
+repeats measure sampling stability via cache-salt, not cache echoes;
+bootstrap CIs seed from the data itself (no flag).

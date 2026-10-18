@@ -118,3 +118,49 @@ def test_compare_cli(tmp_path, capsys):
     assert rc == 0
     data = json.loads(capsys.readouterr().out)
     assert data["improvements"] == 1
+
+
+def test_report_md_stdout(tmp_path, capsys):
+    res = tmp_path / "res.json"
+    res.write_text(
+        json.dumps(
+            {
+                "model": "m1",
+                "label": "M-One",
+                "summary": {
+                    "score": 0.75,
+                    "ci95": [0.5, 0.9],
+                    "n": 4,
+                    "by_category": {"demo": {"score": 0.75, "n": 4}},
+                },
+                "tasks": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+    rc = main(["report", str(res), "--format", "md"])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "| Model |" in out and "| M-One | 75.0%" in out
+    assert "[50.0%, 90.0%]" in out
+    assert "| demo |" in out
+
+
+def test_report_html_requires_out(tmp_path, capsys):
+    res = tmp_path / "res.json"
+    res.write_text(json.dumps({"model": "m", "summary": {}, "tasks": []}))
+    rc = main(["report", str(res)])
+    assert rc == 2
+    assert "--out" in capsys.readouterr().err
+
+
+def test_report_html_tolerates_sparse_json(tmp_path, capsys):
+    # foreign/older results JSON missing optional summary keys must not
+    # crash the renderer (regression: est_cost_usd/score_worst_rep)
+    res = tmp_path / "res.json"
+    res.write_text(json.dumps({"model": "m", "summary": {"score": 0.5},
+                               "tasks": []}), encoding="utf-8")
+    out = tmp_path / "card.html"
+    rc = main(["report", str(res), "--out", str(out)])
+    assert rc == 0
+    assert "Leaderboard" in out.read_text()

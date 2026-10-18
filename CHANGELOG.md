@@ -130,3 +130,34 @@ Format loosely follows Keep a Changelog; versions are dataset/tool aware.
   on those tasks.
 - `karne run --dry-run` prints distinct tasks plus `xN reps = M
   requests` when `--repeat > 1` (was: misleading request count).
+
+## [Unreleased] — round 6 (2026-10-18)
+
+### Added
+- `summary.ci95`: percentile bootstrap 95% confidence interval on the
+  run mean. Resampling is clustered by task id (all `--repeat` reps of a
+  task move together) and driven by a `random.Random` seeded from a
+  SHA-256 of the scores — same results, same interval, no numpy/scipy
+  (`turkce_karne/stats.py`). Shown in `karne run` output and the HTML
+  scorecard.
+- `karne compare` `delta_ci95`: paired bootstrap 95% CI on the mean
+  score delta, in text and `--json` output, alongside McNemar — the
+  effect-size complement to the p-value.
+- With `--repeat > 1`: `summary.score_worst_rep` / `score_best_rep`
+  bound the per-task best/worst repetition rollups (how much of the
+  mean is sampling luck). Shown in CLI output and the HTML run meta.
+- `karne report --format md`: Markdown scorecard table (leaderboard +
+  per-category breakdown), pasteable into READMEs/PRs/issues; prints
+  to stdout when `--out` is omitted. `--out` is now only required for
+  `--format html`.
+- GitHub Actions workflow (`.github/workflows/ci.yml`): pytest on
+  Python 3.11/3.13, `karne validate`, OCR-dataset freshness check,
+  `--dry-run` smoke, and an sdist/wheel build asserting the dataset is
+  bundled.
+- `tests/test_stats.py` + structural scorecard assertions (doctype,
+  required sections, zero external asset refs).
+
+### Changed
+- `--dry-run` output-token estimate now honors `count` checks with an
+  explicit target (`eq`/min+max midpoint × unit factor) and otherwise
+  scales with task difficulty, instead of a flat 400-token guess.

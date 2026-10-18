@@ -82,6 +82,10 @@ task (YAML) ──> chat.completions ──> deterministic checks ──> score
   4xx fails fast. `--rpm` paces requests.
 - **Cost/time**: token usage captured per task; USD estimate via
   `KARNE_PRICE_IN`/`KARNE_PRICE_OUT` or the built-in mini table.
+- **Uncertainty**: `summary.ci95` is a cluster-bootstrap 95% CI on the
+  mean (reps of one task resampled together; seeded from the scores, so
+  reproducible). With `--repeat N`, `score_worst_rep`/`score_best_rep`
+  bound the spread across repetitions.
 
 ## CLI
 
@@ -96,7 +100,8 @@ karne run --model M [--tasks id1,id2] [--sample 10 --seed 7]
           [--judge-model J --judge-weight 0.4 --judge-runs 3]
           [--out results/x.json] [--html]
 karne report a.json b.json --out compare.html   # multi-model scorecard
-karne compare a.json b.json [--json] [--checks]  # paired diff + flips
+karne report a.json --format md                 # Markdown table (stdout or --out)
+karne compare a.json b.json [--json] [--checks]  # paired diff + flips + delta CI
 ```
 
 Useful flags: `--dry-run` prints the selection plus a rough token/cost
@@ -133,10 +138,13 @@ with strict JSON; parse failures fall back to the deterministic score.
 
 ### Comparing runs
 
-`karne compare a.json b.json` pairs tasks by id and reports score
-deltas, flip counts (fail→pass improvements, pass→fail regressions) and
-a McNemar significance test (exact binomial under 25 discordant pairs,
-chi-square with continuity correction above).
+`karne compare a.json b.json` pairs tasks by id (and `@repN` when
+`--repeat` was used) and reports score deltas, flip counts (fail→pass
+improvements, pass→fail regressions), a McNemar significance test
+(exact binomial under 25 discordant pairs, chi-square with continuity
+correction above) and a paired bootstrap 95% CI on the mean score delta
+(`delta_ci95` — resamples are seeded from the data, so the same two
+files always print the same interval).
 
 `karne compare a.json b.json --checks` additionally reports per-check
 verdict flips (check position, type, pass/fail in A and B) — a task

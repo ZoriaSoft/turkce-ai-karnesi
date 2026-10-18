@@ -80,19 +80,32 @@ repo/directory/remote keep the current name until then.
 - [x] HTML scorecard: `@repN` marker on repeated tasks, reps/unstable
       row in run meta.
 
-## Round 5+ candidates
-- [ ] `--dry-run` output estimate: still rough (fixed 400-token guess);
-      model-aware length estimate is the remaining polish.
+## Round 6 (done)
+- [x] `summary.ci95`: cluster bootstrap 95% CI on the run mean
+      (`turkce_karne/stats.py`) — reps of a task resample together;
+      seed derives from a SHA-256 of the scores so the interval is
+      reproducible. In CLI output + HTML run meta.
+- [x] `karne compare` `delta_ci95`: paired bootstrap CI on the mean
+      score delta next to McNemar (effect size + significance).
+- [x] `--repeat` rollups: `score_worst_rep` / `score_best_rep` in the
+      summary, CLI, and HTML.
+- [x] `karne report --format md`: Markdown scorecard (stdout or --out).
+- [x] `.github/workflows/ci.yml`: pytest 3.11/3.13, karne validate,
+      OCR freshness, dry-run smoke, wheel build + bundled-dataset check.
+- [x] HTML scorecard structure test + `test_stats.py`.
+- [x] `--dry-run` output estimate: `count`-check targets or difficulty
+      scaling instead of a flat 400.
+
+## Round 6+ candidates
 - [ ] de/da clitic-vs-suffix: still needs morphology; revisit only with
       a high-precision subset (e.g. after personal pronouns).
-- [ ] GitHub Actions CI (when public): pytest + dataset lint + build check.
 - [ ] `uv run` / `pipx` quickstart verification on a clean env.
 - [ ] Turkish tokenizer-aware length checks (BPE vs word discrepancy note).
-- [ ] Golden-file test for the HTML scorecard (structure, not bytes).
-- [ ] Rep-aware aggregation: `summary.score` currently means "mean over
-      reps"; consider also reporting per-task mean/worst-rep rollups.
 - [ ] More OCR templates beyond 8 (kira sözleşmesi, kargo etiketi,
       laboratuvar sonucu) once a template style settles.
+- [ ] Per-check-type pass-rate table in the scorecard ("which check
+      types fail most").
+- [ ] `karne compare` for >2 runs (leaderboard deltas vs best).
 
 ## Known limits / decisions
 - `json_fields` extracts first balanced `{...}` block; nested braces OK.
@@ -107,3 +120,6 @@ repo/directory/remote keep the current name until then.
   serving-nondeterminism in the judge, not prompt or rubric bias.
 - `strict: true` on `json_fields` counts keys found only via the
   nested-suffix alias as legitimate (wrapper objects don't fail strict).
+- Bootstrap CIs are percentile-method (2000 resamples), seeded from the
+  data — deterministic but not model-aware; tiny n still gives a narrow
+  interval that understates real uncertainty (as every CI does at n=5).

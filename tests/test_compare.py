@@ -206,3 +206,32 @@ def test_compare_rep_only_in_one_run():
     rep = compare_runs(a, b)
     assert rep["n_common"] == 1
     assert rep["only_in_b"] == ["c/t@rep1"]
+
+
+# ---- round 6: paired bootstrap CI on the score delta -----------------------
+
+
+def test_delta_ci95_deterministic():
+    tasks = [(f"c/{i}", s) for i, s in
+             enumerate([1.0, 0.0, 1.0, 0.5, 0.0, 1.0, 0.0, 0.25])]
+    a = _run("A", tasks)
+    b = _run("B", [(t, min(1.0, s + 0.5)) for t, s in tasks])
+    r1 = compare_runs(a, b)
+    r2 = compare_runs(a, b)
+    assert r1["delta_ci95"] == r2["delta_ci95"]
+    lo, hi = r1["delta_ci95"]
+    assert lo <= hi
+    # every task improved by >= 0.25: the lower bound must stay positive
+    assert lo > 0
+
+
+def test_delta_ci95_none_when_no_pairs():
+    rep = compare_runs(_run("A", []), _run("B", []))
+    assert rep["delta_ci95"] is None
+
+
+def test_format_compare_prints_ci():
+    a = _run("A", [("c/1", 0.0), ("c/2", 0.0)])
+    b = _run("B", [("c/1", 1.0), ("c/2", 1.0)])
+    text = format_compare(compare_runs(a, b))
+    assert "delta 95% CI" in text

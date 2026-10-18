@@ -98,3 +98,13 @@ values still score, while surrounding text gets seeded noise
 per template keeps the YAML byte-reproducible; `scripts/gen_ocr_tasks.py
 --check` proves the committed file is fresh. Hand-writing the same
 noise would be unreviewable; the generator is the reviewable artifact.
+
+## D16 — Bootstrap CIs are seeded from the data, not a flag
+`summary.ci95` and compare's `delta_ci95` are percentile bootstrap
+intervals whose resample stream comes from `random.Random` seeded by a
+SHA-256 of the input scores. No `--seed` knob for the stats layer: the
+seed would either leak into the config fingerprint (forcing cache/key
+drift for a display-only quantity) or be forgotten. Data-derived seeding
+keeps intervals byte-reproducible and removes a decision users should
+never have to make. Trade-off accepted: percentile method at small n
+understates uncertainty — documented, not hidden.
