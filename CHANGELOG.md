@@ -3,6 +3,29 @@
 All notable changes to this project are documented here.
 Format loosely follows Keep a Changelog; versions are dataset/tool aware.
 
+## [Unreleased]
+
+### Fixed
+- `karne run` reads the model from `KARNE_MODEL` (as documented) and
+  applies `KARNE_TEMPERATURE` / `KARNE_TIMEOUT`; CLI defaults no longer
+  shadow them.
+- A run where every request failed now exits 2 with the first error
+  instead of reporting 0% as success; partial failures print a warning.
+- `list` / `report` / `compare` print a one-line error for missing or
+  malformed files instead of a traceback; output piped into `head` no
+  longer raises `BrokenPipeError`.
+- `compare --best` no longer treats a 0.0 score as missing.
+- Empty completions are no longer cached (a transient failure used to
+  replay on every rerun); cache temp files are unique per writer.
+- LLM judge: the graded response is fenced as untrusted data so the
+  model under test cannot steer its own verdict as easily. Judge cache
+  keys change once.
+
+### Packaging
+- License expression `MIT AND CC-BY-4.0`; the dataset license now ships
+  in the wheel. sdist includes `tests/conftest.py` and the OCR generator.
+- Added `SECURITY.md` and project URLs.
+
 ## [Unreleased] — pre-public (2026-10-19)
 
 ### Added
