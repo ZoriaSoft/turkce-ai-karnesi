@@ -46,6 +46,19 @@ def norm_text(s: str, *, keep_punct: bool = False) -> str:
     return s
 
 
+def norm_text_latin(s: str, *, keep_punct: bool = False) -> str:
+    """Like :func:`norm_text`, but folds I/İ to plain ``i`` (non-Turkish
+    casing). Used as a second view so English text such as "If" still
+    matches the term "if" (Turkish folding turns it into "ıf")."""
+    s = unicodedata.normalize("NFC", s)
+    s = s.replace("İ", "i").replace("I", "i").lower()
+    s = flatten_ws(s)
+    if not keep_punct:
+        s = _PUNCT_RE.sub(" ", s)
+        s = flatten_ws(s)
+    return s
+
+
 def words(s: str) -> list[str]:
     return _WORD_RE.findall(s)
 

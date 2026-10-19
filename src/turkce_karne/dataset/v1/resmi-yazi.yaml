@@ -113,7 +113,7 @@ items:
       Yalnızca davet metnini yaz.
     checks:
       - type: contains
-        terms: ["veli", "toplantı", "1400", "davet"]
+        terms: ["veli", "toplantı", "14:00", "davet"]   # also matches 14.00
       - type: regex
         pattern: "(veli|toplant).*(davet|rica|katılım)|davet"
       - type: word_order

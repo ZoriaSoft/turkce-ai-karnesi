@@ -24,11 +24,15 @@ items:
     prompt: >-
       Aşağıdakilerden hangisinde 'ki' bitişik yazılmalıdır? Yalnızca doğru
       şıkkın harfini yaz.
-      A) "Evdeki kitap"  B) "Belki yağmur yağar"  C) "Oysaki kimse gelmedi"
-      D) "Sanki biliyordu"
+      A) "Evdeki kitap"  B) "Duydum ki gelmişsin"  C) "Öyle ki herkes şaşırdı"
+      D) "Bilmem ki ne desem"
     checks:
       - type: answer_in
         answers: ["A", "a"]
+    notes: >-
+      Only A is the -ki suffix (evdeki); B-D are the conjunction "ki", written
+      separately. Fixed 2026-10-19: earlier options (belki, oysaki, sanki)
+      are also written fused, so the old item had four correct answers.
 
   - id: imla/mi-mi
     category: imla
@@ -38,7 +42,10 @@ items:
       (ör: mı/mi/mu/mü biçiminde).
     checks:
       - type: answer_in
-        answers: ["mı", "mı?"]
+        answers: ["mü", "mü?"]
+    notes: >-
+      "Süt" has the rounded front vowel ü, so the particle is "mü" (Süt mü?).
+      Fixed 2026-10-19: earlier gold answer "mı" was wrong.
 
   - id: imla/bitisik
     category: imla

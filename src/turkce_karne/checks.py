@@ -21,6 +21,7 @@ from .textnorm import (
     has_turkish_char,
     line_count,
     norm_text,
+    norm_text_latin,
     sentence_count,
     to_date_iso,
     to_number,
@@ -55,10 +56,14 @@ def _mode(spec: dict) -> str:
     return mode
 
 
-def _find(haystack_norm: str, term: str, mode: str) -> bool:
+def _find(haystack_norm: str, term: str, mode: str,
+          haystack_latin: str | None = None) -> bool:
     if mode == "regex":
         return re.search(term, haystack_norm, flags=re.IGNORECASE) is not None
-    return norm_text(term) in haystack_norm
+    if norm_text(term) in haystack_norm:
+        return True
+    # Second view with non-Turkish I/i casing, so "If" matches "if".
+    return haystack_latin is not None and norm_text_latin(term) in haystack_latin
 
 
 # --------------------------------------------------------------------------
@@ -69,7 +74,8 @@ def _check_contains(spec: dict, resp: str, ctx) -> CheckResult:
     terms = _terms(spec)
     mode = _mode(spec)
     hn = norm_text(resp) if mode == "literal" else resp
-    missing = [t for t in terms if not _find(hn, t, mode)]
+    hl = norm_text_latin(resp) if mode == "literal" else None
+    missing = [t for t in terms if not _find(hn, t, mode, hl)]
     return CheckResult(
         type="contains",
         passed=not missing,
@@ -81,7 +87,8 @@ def _check_not_contains(spec: dict, resp: str, ctx) -> CheckResult:
     terms = _terms(spec)
     mode = _mode(spec)
     hn = norm_text(resp) if mode == "literal" else resp
-    found = [t for t in terms if _find(hn, t, mode)]
+    hl = norm_text_latin(resp) if mode == "literal" else None
+    found = [t for t in terms if _find(hn, t, mode, hl)]
     return CheckResult(
         type="not_contains",
         passed=not found,

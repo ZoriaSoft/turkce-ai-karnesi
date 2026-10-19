@@ -419,3 +419,16 @@ def test_spelling_de_da_skips_circumflex_and_short():
     # very short stems ("O da", "De ki") carry no reliable signal
     r = chk("spelling_rules", "Kâr da zarar da oldu. O da geldi. De ki gel.")
     assert r.passed
+
+
+def test_contains_matches_english_capital_i():
+    # Turkish folding maps "If" -> "ıf"; the latin view must still match "if".
+    from turkce_karne.checks import evaluate_check
+    r = evaluate_check({"type": "contains", "terms": ["if", "meeting"]},
+                       "If the meeting starts on time, it ends before noon.")
+    assert r.passed
+    r = evaluate_check({"type": "not_contains", "terms": ["if"]}, "If so.")
+    assert not r.passed
+    # Turkish dotless/dotted distinction still holds in the Turkish view
+    r = evaluate_check({"type": "contains", "terms": ["ısparta"]}, "ISPARTA")
+    assert r.passed

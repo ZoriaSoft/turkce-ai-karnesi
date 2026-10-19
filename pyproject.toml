@@ -3,7 +3,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "turkce-karne"
+name = "turkce-ai-karnesi"
 version = "0.1.0"
 description = "Evaluation kit for Turkish-capable LLMs: deterministic checks + HTML scorecard"
 readme = "README.md"

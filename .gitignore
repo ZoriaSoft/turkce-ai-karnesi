@@ -10,7 +10,9 @@ venv/
 .ruff_cache/
 .coverage
 htmlcov/
-results/
+/results/
+.karne-cache/
+MEMORY.md
 *.results.json
 .env
 .env.*

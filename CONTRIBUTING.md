@@ -38,8 +38,8 @@ Rules:
   for reproducibility but not loaded as tasks.
 - `dataset/v1/cikartim-ocr.yaml` is generated — edit
   `scripts/gen_ocr_tasks.py` instead and run
-  `python3 scripts/gen_ocr_tasks.py` (its `--check` mode is enforced in
-  CI).
+  `python3 scripts/gen_ocr_tasks.py` (its `--check` mode is also enforced
+  by `tests/test_ocrnoise.py`).
 
 Run `karne validate` before opening a PR; it lints ids, schema and check
 params.
@@ -58,7 +58,13 @@ on cases with no legal reading.
 python3 -m venv .venv
 .venv/bin/pip install -e '.[dev]'
 .venv/bin/pytest           # fake model server; never calls real APIs
+.venv/bin/karne validate   # dataset lint
+.venv/bin/python scripts/gen_ocr_tasks.py --check   # generated OCR tasks fresh
 ```
+
+There is no hosted CI: please run `pytest` and `karne validate` locally
+before opening a PR and paste the summary line (e.g. `NNN passed`) in the
+PR description.
 
 Determinism matters: dataset hashing, seeded sampling and cache keys
 over (model, messages, generation params) — please don't introduce

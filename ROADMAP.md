@@ -1,9 +1,10 @@
 # Roadmap
 
 ## Name proposal
-`turkish-llm-scorecard` — checked 2026-10-18, zero GitHub repos with that
-name (API search). Alternatives: `turkce-karne`, `tr-llm-karne`. Owner decides;
-repo/directory/remote keep the current name until then.
+The repo and the distribution keep the name `turkce-ai-karnesi` (import
+module `turkce_karne`, CLI `karne`). An English alias,
+`turkish-llm-scorecard`, is a proposal for later (e.g. a PyPI name or a
+GitHub mirror); no rename is planned before v0.2.
 
 ## Round 1 (done)
 - [x] Repo scaffold: pyproject (src layout, `turkce_karne` module), MIT license,
@@ -60,7 +61,7 @@ repo/directory/remote keep the current name until then.
       position (type, pass/fail in A and B, `type_changed` /
       `checks_len_changed` spec-drift marks), `n_check_flips` summary,
       text + `--json` output.
-- [x] Fixed sandbox test recipe (PEP 668 venv) in AGENTS.md.
+- [x] Fixed test recipe (PEP 668 venv) in AGENTS.md.
 
 ## Round 5 (done)
 - [x] `--repeat N` now issues N real generations per task: each rep>0
@@ -116,7 +117,7 @@ repo/directory/remote keep the current name until then.
       (2-file and leaderboard modes).
 - [x] `imla/de-da-uyum` task; dataset 72 → 73.
 - [x] `uv run`/`uvx` quickstart verified on clean env (`uvx --from .
-      karne validate`; pipx not in the sandbox image — documented as
+      karne validate`; pipx not in the test image — documented as
       equivalent).
 - [x] Final polish: `CONTRIBUTING.md`, README limits note that `count`
       measures words/chars not tokens (BPE agglutination gap), README.tr
@@ -127,8 +128,10 @@ repo/directory/remote keep the current name until then.
       sigorta poliçesi) once a template style settles.
 - [ ] Generic de/da clitic-vs-suffix split needs real morphology; the
       separated-vowel subset shipped in round 8 covers the safe half.
-- [ ] Public-name decision (`turkish-llm-scorecard` proposal above),
-      PyPI/release once the repo goes public.
+- [ ] PyPI release (name: `turkce-ai-karnesi`; English alias
+      `turkish-llm-scorecard` proposed above).
+- [ ] Re-run the published scorecard per dataset version; add paid
+      frontier models when sponsored credits allow.
 
 ## Known limits / decisions
 - `json_fields` extracts first balanced `{...}` block; nested braces OK.

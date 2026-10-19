@@ -84,8 +84,8 @@ items:
       Sevk tarihi: 16.10.2026
     expected:
       irsaliye_no: "IR-2026-5543"
-      gonderen: "Anadolu Ambalaj San. A.S."
-      alici: "Berrin Kozmetik Ltd."
+      gonderen: "Anadolu Ambalaj San. A.S. (Konya OSB)"
+      alici: "Berrin Kozmetik Ltd. - Depo 2"
       kalem_sayisi: 3
     checks:
       - type: json_fields

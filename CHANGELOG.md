@@ -3,6 +3,32 @@
 All notable changes to this project are documented here.
 Format loosely follows Keep a Changelog; versions are dataset/tool aware.
 
+## [Unreleased] — pre-public (2026-10-19)
+
+### Added
+- Published scorecard `docs/results/2026-10/` (6 models × 73 tasks,
+  dataset v1): results JSON, Markdown + HTML scorecard; "Results (Oct
+  2026)" table in README / README.tr.
+- `norm_text_latin` second matching view for `contains`/`not_contains`:
+  English "If" now matches the term "if" (Turkish folding gave "ıf").
+
+### Fixed (dataset v1, found by the first real run)
+- `imla/mi-mi`: gold answer was "mı"; correct is "mü" (Süt mü?).
+- `imla/ki`: options B–D (belki, oysaki, sanki) are also written fused;
+  replaced with conjunction-ki options so A is the only answer.
+- `ozet/veli-duyurusu`: term `şenlik` → stem `şenli` (k/ğ softening).
+- `resmi-yazi/veli-toplantisi`: term `1400` could never match `14:00`
+  after punctuation stripping; now `14:00` (also matches `14.00`).
+- `cikartim/irsaliye`: gold `gonderen`/`alici` now the verbatim field
+  values from the document.
+
+### Changed
+- Distribution name `turkce-karne` → `turkce-ai-karnesi` (matches the
+  repo; module `turkce_karne` and CLI `karne` unchanged).
+- Removed `.github/workflows` (no hosted CI); CONTRIBUTING documents the
+  local `pytest` + `karne validate` routine.
+- Agent/project notes trimmed for public release.
+
 ## [Unreleased] — round 1 (2026-10-18)
 
 ### Added
@@ -95,8 +121,8 @@ Format loosely follows Keep a Changelog; versions are dataset/tool aware.
   canned responses.
 
 ### Changed
-- Sandbox test recipe in AGENTS.md now uses a venv (system pip is
-  PEP 668 externally-managed on the Debian 13 sandbox).
+- Test recipe in AGENTS.md now uses a venv (system pip is PEP 668
+  externally-managed on Debian 13).
 
 ## [Unreleased] — round 5 (2026-10-18)
 

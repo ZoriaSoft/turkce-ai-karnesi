@@ -15,7 +15,7 @@ items:
         unit: words
         max: 25
       - type: contains
-        terms: ["bilim", "şenlik"]
+        terms: ["bilim", "şenli"]   # stem: şenlik → şenliği (k/ğ softening)
       - type: turkish_share
         min: 0.6
       - type: spelling_rules
