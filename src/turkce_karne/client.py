@@ -85,7 +85,9 @@ class FileCache:
         if not self.enabled:
             return
         f = self._file(key)
-        tmp = f.with_suffix(".tmp")
+        # unique tmp name: two threads writing the same key must not
+        # interleave into one temp file
+        tmp = f.with_name(f"{f.stem}.{os.getpid()}.{threading.get_ident()}.tmp")
         tmp.write_text(
             json.dumps(record, ensure_ascii=False, indent=None), encoding="utf-8"
         )
@@ -152,7 +154,10 @@ class OpenAICompatClient:
                 retries=0,
             )
         record = self._request_with_retries(gen.payload(messages))
-        self.cache.put(key, record)
+        # an empty/None completion is usually transient (filtered or
+        # truncated output); caching it would pin the failure forever
+        if record.get("content"):
+            self.cache.put(key, record)
         return CompletionResult(
             content=record.get("content"),
             cached=False,

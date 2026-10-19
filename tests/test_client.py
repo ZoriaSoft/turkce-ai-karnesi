@@ -126,3 +126,18 @@ def test_content_parts_response(fake_openai):
     )
     assert joined == "ab"
     c.close()
+
+
+def test_empty_response_not_cached(fake_openai, tmp_path):
+    state, base = fake_openai
+    state.default_content = ""
+    cache = FileCache(tmp_path / "cache")
+    c = OpenAICompatClient(base, timeout=10, cache=cache)
+    gen = GenerationConfig(model="fake")
+    assert not c.complete(gen, _msgs()).content
+    state.default_content = "tamam."
+    r = c.complete(gen, _msgs())
+    assert r.content == "tamam." and not r.cached
+    assert len(state.requests) == 2
+    assert not list((tmp_path / "cache").glob("*.tmp"))
+    c.close()
