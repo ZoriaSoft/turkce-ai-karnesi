@@ -1,5 +1,7 @@
 # turkce-ai-karnesi
 
+<p align="center"><img src="docs/flow.svg" alt="Türkçe AI Karnesi October 2026 scorecard" width="100%"></p>
+
 An evaluation kit that answers one question: **which LLMs are actually good
 at real Turkish work?** Especially the cheap/free ones people actually use.
 

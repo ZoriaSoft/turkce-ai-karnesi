@@ -1,5 +1,7 @@
 # turkce-ai-karnesi
 
+<p align="center"><img src="docs/flow.svg" alt="Türkçe AI Karnesi October 2026 scorecard" width="100%"></p>
+
 Türkçe'de gerçekten iş gören LLM'leri ölçen bir değerlendirme kiti — özellikle
 insanların fiilen kullandığı ucuz/ücretsiz modeller için.
 
