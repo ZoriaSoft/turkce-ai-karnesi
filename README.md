@@ -70,6 +70,39 @@ Optionally, a second model can act as a judge on the free-text
 categories (`--judge-model`), adding a fixed-rubric score that blends
 with the deterministic score.
 
+## Results (Oct 2026)
+
+Full run of all 73 tasks of dataset v1 (sha256 `d32efc57324a…`), run on
+2026-10-19: zero-shot, default system prompt, one generation per task,
+deterministic checks only (no LLM judge). Scores are task means; the 95%
+CI is the kit's cluster bootstrap.
+
+| Model | Overall | 95% CI | Best category | Worst category |
+|---|---:|---:|---|---|
+| GLM-5.3 (Z.ai) | **94.8%** | 91.5–97.6 | `akl-yurutme` 100% | `resmi-yazi` 80% |
+| Nemotron-3.5-Super-VL (NVIDIA) | 94.2% | 90.4–97.4 | `akl-yurutme` 100% | `imla` 83% |
+| DeepSeek-V4.1-Flash | 94.1% | 90.9–96.6 | `akl-yurutme` 100% | `resmi-yazi` 83% |
+| MiMo-V2.6-Flash (Xiaomi) | 90.4% | 85.2–94.3 | `akl-yurutme` 100% | `imla` 76% |
+| GLM-5.3-Flash (Z.ai) | 87.3% | 81.7–92.3 | `ceviri` 99% | `imla` 63% |
+| Ling-3.1-Flash (inclusionAI) | 85.4% | 78.1–91.8 | `akl-yurutme` 100% | `imla` 33% |
+
+Reading it: the top three overlap within their CIs — treat them as a tie.
+`imla` (de/da, ki, soru eki, bitişik yazım) is where small/fast models
+fall apart; `resmi-yazi` (dilekçe structure) is the weak spot even for
+the strongest ones. Decoding settings were each endpoint's defaults
+(temperature 0 was requested but is not guaranteed by every provider),
+so expect a point or two of run-to-run noise.
+
+Full scorecard: [`docs/results/2026-10/scorecard.md`](docs/results/2026-10/scorecard.md)
+(per-category and per-check-type tables), HTML with every response:
+[`docs/results/2026-10/scorecard.html`](docs/results/2026-10/scorecard.html),
+raw results JSON alongside. Reproduce one row:
+
+```bash
+karne run --base-url <endpoint> --model <model> --html
+karne compare docs/results/2026-10/karne-glm-5.3.json results/karne-*.json
+```
+
 ## How it works
 
 ```
@@ -221,4 +254,10 @@ pip install -e .[dev]
 pytest                 # fake model server; no real API calls
 ```
 
-Code is MIT; the dataset is CC-BY-4.0 (see `dataset/` headers).
+No hosted CI — run `pytest` and `karne validate` locally before a PR
+(see `CONTRIBUTING.md`).
+
+## License
+
+Code: MIT (`LICENSE`). Dataset (everything under `dataset/`): CC-BY-4.0
+(`dataset/LICENSE.md`).

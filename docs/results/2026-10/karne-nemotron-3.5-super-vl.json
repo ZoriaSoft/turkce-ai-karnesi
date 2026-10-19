@@ -1,0 +1,2473 @@
+{
+ "format": "turkce-karne/v1",
+ "tool_version": "0.1.0",
+ "run_id": "20261019T055642Z",
+ "label": "Nemotron-3.5-Super-VL (NVIDIA)",
+ "model": "nemotron-3.5-super-vl",
+ "dataset": {
+  "version": "v1",
+  "sha256": "d32efc57324aae60308094e479038c201da8f191d5ee7887fabf17f8be46a961",
+  "items_sha256": "5f21c14780dc7b17c96b23037d8039c2d3a2fba4a8089158f5af4a236dc27e58",
+  "n_items_total": 73,
+  "n_run": 73,
+  "categories": {
+   "akl-yurutme": 7,
+   "ceviri": 7,
+   "cikartim": 18,
+   "eposta": 7,
+   "imla": 11,
+   "ozet": 7,
+   "resmi-yazi": 7,
+   "yonerge": 9
+  }
+ },
+ "config_fingerprint": "d80a3250dbe2af35",
+ "config": {
+  "temperature": 0.0,
+  "max_tokens": 2048,
+  "seed": 42,
+  "sample": null,
+  "repeat": 1,
+  "categories": null,
+  "task_ids": null,
+  "prompt_style": "zero"
+ },
+ "summary": {
+  "score": 0.9425,
+  "ci95": [
+   0.9043,
+   0.9744
+  ],
+  "n": 73,
+  "errors": 0,
+  "by_category": {
+   "akl-yurutme": {
+    "score": 1.0,
+    "n": 7
+   },
+   "ceviri": {
+    "score": 0.9571,
+    "n": 7
+   },
+   "cikartim": {
+    "score": 0.956,
+    "n": 18
+   },
+   "eposta": {
+    "score": 0.949,
+    "n": 7
+   },
+   "imla": {
+    "score": 0.8288,
+    "n": 11
+   },
+   "ozet": {
+    "score": 0.9678,
+    "n": 7
+   },
+   "resmi-yazi": {
+    "score": 0.9429,
+    "n": 7
+   },
+   "yonerge": {
+    "score": 0.9734,
+    "n": 9
+   }
+  },
+  "by_check_type": {
+   "answer_line": {
+    "score": 0.5,
+    "n": 2,
+    "n_fail": 1
+   },
+   "regex": {
+    "score": 0.8333,
+    "n": 6,
+    "n_fail": 1
+   },
+   "written_form": {
+    "score": 0.9,
+    "n": 4,
+    "n_fail": 1
+   },
+   "turkish_share": {
+    "score": 0.909,
+    "n": 27,
+    "n_fail": 5
+   },
+   "contains": {
+    "score": 0.9211,
+    "n": 38,
+    "n_fail": 3
+   },
+   "answer_in": {
+    "score": 0.9333,
+    "n": 15,
+    "n_fail": 1
+   },
+   "json_fields": {
+    "score": 0.9337,
+    "n": 18,
+    "n_fail": 5
+   },
+   "count": {
+    "score": 0.9677,
+    "n": 31,
+    "n_fail": 1
+   },
+   "spelling_rules": {
+    "score": 0.9815,
+    "n": 27,
+    "n_fail": 2
+   },
+   "not_contains": {
+    "score": 1.0,
+    "n": 23,
+    "n_fail": 0
+   },
+   "word_order": {
+    "score": 1.0,
+    "n": 8,
+    "n_fail": 0
+   },
+   "starts_with": {
+    "score": 1.0,
+    "n": 8,
+    "n_fail": 0
+   },
+   "only_lines_with_prefix": {
+    "score": 1.0,
+    "n": 3,
+    "n_fail": 0
+   },
+   "every_line_matches": {
+    "score": 1.0,
+    "n": 2,
+    "n_fail": 0
+   }
+  },
+  "elapsed_ms": 36478,
+  "tokens_in": null,
+  "tokens_out": null,
+  "est_cost_usd": null,
+  "cache_hits": 72
+ },
+ "tasks": [
+  {
+   "id": "akl-yurutme/dizi",
+   "category": "akl-yurutme",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "answer_in",
+     "passed": true
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "Örüntü: n. terim = n × (n+1) (yani karesiyle kendisinin toplanıyor).\n\n- 1. terim: 1 × 2 = 2\n- 2. terim: 2 × 3 = 6\n- 3. terim: 3 × 4 = 12\n- 4. terim: 4 × 5 = 20\n- 5. terim: 5 × 6 = 30\n\n(Aynı zamanda farklar 4, 6, 8, ... artarak gider; sonraki fark 10, dolayısıyla 20 + 10 = 30.)\n\nCevap: 30",
+   "cached": true
+  },
+  {
+   "id": "akl-yurutme/haftalik-saat",
+   "category": "akl-yurutme",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "answer_in",
+     "passed": true
+    },
+    {
+     "type": "contains",
+     "passed": true
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "Pazartesi–Cuma: 5 gün × 8 saat = 40 saat  \nCumartesi: 4 saat  \nPazar: 0 saat  \n\nToplam: 40 + 4 = 44 saat\n\nCevap: 44",
+   "cached": true
+  },
+  {
+   "id": "akl-yurutme/indirim",
+   "category": "akl-yurutme",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "answer_in",
+     "passed": true
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "%25 indirim tutarı: 840 × 0,25 = 210 TL  \nİndirimli fiyat: 840 − 210 = 630 TL\n\nCevap: 630 TL",
+   "cached": true
+  },
+  {
+   "id": "akl-yurutme/isci-gunu",
+   "category": "akl-yurutme",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "answer_in",
+     "passed": true
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "Toplam iş emek: 4 işçi × 12 gün = 48 işçi-gün.\n\n6 işçi ile: 48 ÷ 6 = 8 gün.\n\nCevap: 8",
+   "cached": true
+  },
+  {
+   "id": "akl-yurutme/mesai",
+   "category": "akl-yurutme",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "answer_in",
+     "passed": true
+    },
+    {
+     "type": "contains",
+     "passed": true
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "Saat ücreti: 2.400 ÷ 40 = 60 TL  \nFazla mesai saat ücreti: 60 × 1,5 = 90 TL  \n5 saat fazla mesai: 5 × 90 = 450 TL  \nToplam: 2.400 + 450 = 2.850 TL\n\nCevap: 2850",
+   "cached": true
+  },
+  {
+   "id": "akl-yurutme/not-ortalamasi",
+   "category": "akl-yurutme",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "answer_in",
+     "passed": true
+    },
+    {
+     "type": "contains",
+     "passed": true
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "Notların toplamı: 70 + 80 + 90 = 240.  \nOrtalama: 240 / 3 = 80.\n\nCevap: 80",
+   "cached": true
+  },
+  {
+   "id": "akl-yurutme/yas",
+   "category": "akl-yurutme",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "answer_in",
+     "passed": true
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "Ayşe'nin bugünkü yaşı A, kardeşinin yaşı K olsun.\n\nA = K + 6  \n10 yıl sonra: (A + 10) + (K + 10) = 50 → A + K = 30  \n\n(Yerleştirilince:) (K + 6) + K = 30 → 2K = 24 → K = 12  \nA = 12 + 6 = 18\n\nCevap: 18",
+   "cached": true
+  },
+  {
+   "id": "ceviri/en-tr-kayit",
+   "category": "ceviri",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "contains",
+     "passed": true
+    },
+    {
+     "type": "contains",
+     "passed": true
+    },
+    {
+     "type": "turkish_share",
+     "passed": true,
+     "fraction": 0.75,
+     "detail": {
+      "share": 0.75,
+      "min": 0.55,
+      "tokens": 4
+     }
+    },
+    {
+     "type": "not_contains",
+     "passed": true
+    },
+    {
+     "type": "spelling_rules",
+     "passed": true,
+     "fraction": 1.0
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "Kayıt son tarihi Cuma'dır.",
+   "cached": true
+  },
+  {
+   "id": "ceviri/en-tr-sonuc",
+   "category": "ceviri",
+   "score": 0.7,
+   "checks": [
+    {
+     "type": "contains",
+     "passed": false,
+     "detail": {
+      "missing": [
+       "ertel"
+      ]
+     }
+    },
+    {
+     "type": "word_order",
+     "passed": true
+    },
+    {
+     "type": "turkish_share",
+     "passed": false,
+     "fraction": 0.5,
+     "detail": {
+      "share": 0.5,
+      "min": 0.6,
+      "tokens": 6
+     }
+    },
+    {
+     "type": "not_contains",
+     "passed": true
+    },
+    {
+     "type": "spelling_rules",
+     "passed": true,
+     "fraction": 1.0
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 0.7,
+   "response": "Komite kararı bir sonraki toplantıya ertekledi.",
+   "cached": true
+  },
+  {
+   "id": "ceviri/en-tr-sure",
+   "category": "ceviri",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "contains",
+     "passed": true
+    },
+    {
+     "type": "contains",
+     "passed": true
+    },
+    {
+     "type": "turkish_share",
+     "passed": true,
+     "fraction": 0.8,
+     "detail": {
+      "share": 0.8,
+      "min": 0.6,
+      "tokens": 5
+     }
+    },
+    {
+     "type": "not_contains",
+     "passed": true
+    },
+    {
+     "type": "spelling_rules",
+     "passed": true,
+     "fraction": 1.0
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "Teslimat iki iş günü sürer.",
+   "cached": true
+  },
+  {
+   "id": "ceviri/tr-en-ettirgen",
+   "category": "ceviri",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "contains",
+     "passed": true
+    },
+    {
+     "type": "contains",
+     "passed": true
+    },
+    {
+     "type": "not_contains",
+     "passed": true
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "The technician had the faulty printer repaired.",
+   "cached": true
+  },
+  {
+   "id": "ceviri/tr-en-kayip",
+   "category": "ceviri",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "contains",
+     "passed": true
+    },
+    {
+     "type": "contains",
+     "passed": true
+    },
+    {
+     "type": "contains",
+     "passed": true
+    },
+    {
+     "type": "not_contains",
+     "passed": true
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "I lost my keys; I can't get in.",
+   "cached": true
+  },
+  {
+   "id": "ceviri/tr-en-kosul",
+   "category": "ceviri",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "contains",
+     "passed": true
+    },
+    {
+     "type": "contains",
+     "passed": true
+    },
+    {
+     "type": "not_contains",
+     "passed": true
+    },
+    {
+     "type": "count",
+     "passed": true,
+     "detail": {
+      "unit": "words",
+      "measured": 11,
+      "min": 6,
+      "max": null,
+      "eq": null
+     }
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "If the meeting starts on time, it will end before noon.",
+   "cached": true
+  },
+  {
+   "id": "ceviri/tr-en-urun",
+   "category": "ceviri",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "contains",
+     "passed": true
+    },
+    {
+     "type": "contains",
+     "passed": true
+    },
+    {
+     "type": "count",
+     "passed": true,
+     "detail": {
+      "unit": "words",
+      "measured": 10,
+      "min": 6,
+      "max": null,
+      "eq": null
+     }
+    },
+    {
+     "type": "not_contains",
+     "passed": true
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "Soil moisture sensor reduces water consumption in fields by 30%.",
+   "cached": true
+  },
+  {
+   "id": "cikartim/fatura",
+   "category": "cikartim",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "json_fields",
+     "passed": true,
+     "fraction": 1.0,
+     "detail": {
+      "matched": [
+       "satici_unvan",
+       "fatura_no",
+       "tarih",
+       "ara_toplam",
+       "kdv",
+       "genel_toplam"
+      ],
+      "missed": []
+     }
+    },
+    {
+     "type": "not_contains",
+     "passed": true
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "{\n  \"satici_unvan\": \"YILDIZ GIDA TIC. LTD. STI.\",\n  \"fatura_no\": \"YGD2026-00812\",\n  \"tarih\": \"12.10.2026\",\n  \"ara_toplam\": \"790,00 TL\",\n  \"kdv\": \"79,00 TL\",\n  \"genel_toplam\": \"869,00 TL\"\n}",
+   "cached": true
+  },
+  {
+   "id": "cikartim/irsaliye",
+   "category": "cikartim",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "json_fields",
+     "passed": true,
+     "fraction": 1.0,
+     "detail": {
+      "matched": [
+       "irsaliye_no",
+       "gonderen",
+       "alici",
+       "kalem_sayisi"
+      ],
+      "missed": []
+     }
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "{\n  \"irsaliye_no\": \"IR-2026-5543\",\n  \"gonderen\": \"Anadolu Ambalaj San. A.S. (Konya OSB)\",\n  \"alici\": \"Berrin Kozmetik Ltd. - Depo 2\",\n  \"kalem_sayisi\": 3\n}",
+   "cached": true
+  },
+  {
+   "id": "cikartim/ocr-asansor-tutanak",
+   "category": "cikartim",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "json_fields",
+     "passed": true,
+     "fraction": 1.0,
+     "detail": {
+      "matched": [
+       "tutanak_no",
+       "tarih",
+       "bina_adresi",
+       "gorevli",
+       "ariza_ozeti"
+      ],
+      "missed": []
+     }
+    },
+    {
+     "type": "not_contains",
+     "passed": true
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "{\n  \"tutanak_no\": \"AST-2026-118\",\n  \"tarih\": \"2026-10-16\",\n  \"bina_adresi\": \"gül mah. lale sk. no:7 kadıköy/istanbul\",\n  \"gorevli\": \"rıfat kandemir\",\n  \"ariza_ozeti\": \"asansor kabin halati asinmasi\"\n}",
+   "cached": true
+  },
+  {
+   "id": "cikartim/ocr-fatura",
+   "category": "cikartim",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "json_fields",
+     "passed": true,
+     "fraction": 1.0,
+     "detail": {
+      "matched": [
+       "satici_unvan",
+       "fatura_no",
+       "tarih",
+       "ara_toplam",
+       "kdv",
+       "genel_toplam"
+      ],
+      "missed": []
+     }
+    },
+    {
+     "type": "not_contains",
+     "passed": true
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "{\n  \"satici_unvan\": \"KOZA BİLİŞİM VE ELEKTRONİK TİC. A.Ş.\",\n  \"fatura_no\": \"ETT2026/04127\",\n  \"tarih\": \"2026-10-13\",\n  \"ara_toplam\": 1869.70,\n  \"kdv\": 373.94,\n  \"genel_toplam\": 2243.64\n}",
+   "cached": true
+  },
+  {
+   "id": "cikartim/ocr-gider-nota",
+   "category": "cikartim",
+   "score": 0.9,
+   "checks": [
+    {
+     "type": "json_fields",
+     "passed": false,
+     "fraction": 0.8,
+     "detail": {
+      "matched": [
+       "belge_no",
+       "tarih",
+       "unvan",
+       "tutar"
+      ],
+      "missed": [
+       "aciklama"
+      ]
+     }
+    },
+    {
+     "type": "not_contains",
+     "passed": true
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 0.9,
+   "response": "{\n  \"belge_no\": \"GN-2026/0903\",\n  \"tarih\": \"2026-10-18\",\n  \"unvan\": \"PARS ÇEVRE TEMİZLİK HİZMETLERİ\",\n  \"aciklama\": \"EKİM ayı ortak alan temizliği\",\n  \"tutar\": 1575.0\n}",
+   "cached": true
+  },
+  {
+   "id": "cikartim/ocr-irsaliye",
+   "category": "cikartim",
+   "score": 0.8,
+   "checks": [
+    {
+     "type": "json_fields",
+     "passed": false,
+     "fraction": 0.6,
+     "detail": {
+      "matched": [
+       "irsaliye_no",
+       "kalem_sayisi",
+       "plaka"
+      ],
+      "missed": [
+       "gonderen",
+       "alici"
+      ]
+     }
+    },
+    {
+     "type": "not_contains",
+     "passed": true
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 0.8,
+   "response": "{\"irsaliye_no\":\"IR-2026-6621\",\"gonderen\":\"ege kâğıt ürünleri san. ltd. (Manisa)\",\"alici\":\"ünal kırtasiye depo - İzmir/Bornova\",\"kalem_sayisi\":4,\"plaka\":\"35 GKT 412\"}",
+   "cached": true
+  },
+  {
+   "id": "cikartim/ocr-kargo-etiket",
+   "category": "cikartim",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "json_fields",
+     "passed": true,
+     "fraction": 1.0,
+     "detail": {
+      "matched": [
+       "gonderi_no",
+       "alici",
+       "sehir",
+       "agirlik_kg",
+       "odeme_tipi"
+      ],
+      "missed": []
+     }
+    },
+    {
+     "type": "not_contains",
+     "passed": true
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "{\n  \"gonderi_no\": \"YZK-8821-4607\",\n  \"alici\": \"Nurgül Aksoy\",\n  \"sehir\": \"trabzon\",\n  \"agirlik_kg\": 2.4,\n  \"odeme_tipi\": \"KAPIDA_ODEME\"\n}",
+   "cached": true
+  },
+  {
+   "id": "cikartim/ocr-kira-sozlesme",
+   "category": "cikartim",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "json_fields",
+     "passed": true,
+     "fraction": 1.0,
+     "detail": {
+      "matched": [
+       "kiraci",
+       "malik",
+       "daire_adresi",
+       "baslangic",
+       "aylik_kira",
+       "depozito"
+      ],
+      "missed": []
+     }
+    },
+    {
+     "type": "not_contains",
+     "passed": true
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "{\n  \"kiraci\": \"ELİF SARIKAYA\",\n  \"malik\": \"ORHAN DEMİRTAŞ\",\n  \"daire_adresi\": \"cemil topuzlu cad. no:23 d:5 göztepe/istanbul\",\n  \"baslangic\": \"2026-11-01\",\n  \"aylik_kira\": 27500,\n  \"depozito\": 55000\n}",
+   "cached": true
+  },
+  {
+   "id": "cikartim/ocr-lab-sonuc",
+   "category": "cikartim",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "json_fields",
+     "passed": true,
+     "fraction": 1.0,
+     "detail": {
+      "matched": [
+       "hasta",
+       "tarih",
+       "hgb",
+       "hct",
+       "plt",
+       "wbc"
+      ],
+      "missed": []
+     }
+    },
+    {
+     "type": "not_contains",
+     "passed": true
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "{\n  \"hasta\": \"veysel karaca\",\n  \"tarih\": \"2026-10-14\",\n  \"hgb\": 14.2,\n  \"hct\": 42.8,\n  \"plt\": 241,\n  \"wbc\": 7.3\n}",
+   "cached": true
+  },
+  {
+   "id": "cikartim/ocr-makbuz",
+   "category": "cikartim",
+   "score": 0.9,
+   "checks": [
+    {
+     "type": "json_fields",
+     "passed": false,
+     "fraction": 0.8,
+     "detail": {
+      "matched": [
+       "fis_no",
+       "tarih",
+       "urun_sayisi",
+       "toplam"
+      ],
+      "missed": [
+       "market_adi"
+      ]
+     }
+    },
+    {
+     "type": "not_contains",
+     "passed": true
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 0.9,
+   "response": "{\n  \"market_adi\": \"DENİZ MARKET G1DA LTD. - ŞUBE3\",\n  \"fis_no\": \"B-0047-2216\",\n  \"tarih\": \"2026-10-15\",\n  \"urun_sayisi\": 7,\n  \"toplam\": 412.35\n}",
+   "cached": true
+  },
+  {
+   "id": "cikartim/ocr-recete",
+   "category": "cikartim",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "json_fields",
+     "passed": true,
+     "fraction": 1.0,
+     "detail": {
+      "matched": [
+       "doktor",
+       "hasta",
+       "tarih",
+       "ilac_sayisi",
+       "teshis"
+      ],
+      "missed": []
+     }
+    },
+    {
+     "type": "not_contains",
+     "passed": true
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "{\n  \"doktor\": \"hale soylu\",\n  \"hasta\": \"NECDET ARMAN\",\n  \"tarih\": \"2026-10-17\",\n  \"ilac_sayisi\": 4,\n  \"teshis\": \"AKUT FARENJİT\"\n}",
+   "cached": true
+  },
+  {
+   "id": "cikartim/ocr-siparis",
+   "category": "cikartim",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "json_fields",
+     "passed": true,
+     "fraction": 1.0,
+     "detail": {
+      "matched": [
+       "musteri",
+       "siparis_no",
+       "odeme_turu",
+       "tutar",
+       "teslim_sehir"
+      ],
+      "missed": []
+     }
+    },
+    {
+     "type": "not_contains",
+     "passed": true
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "{\n  \"musteri\": \"sertaç yıldır\",\n  \"siparis_no\": \"SP-44071\",\n  \"odeme_turu\": \"HAVALE/EFT\",\n  \"tutar\": 899.75,\n  \"teslim_sehir\": \"İZMİR\"\n}",
+   "cached": true
+  },
+  {
+   "id": "cikartim/ocr-uyelik",
+   "category": "cikartim",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "json_fields",
+     "passed": true,
+     "fraction": 1.0,
+     "detail": {
+      "matched": [
+       "uye_adi",
+       "uye_no",
+       "baslangic",
+       "aidat",
+       "telefon"
+      ],
+      "missed": []
+     }
+    },
+    {
+     "type": "not_contains",
+     "passed": true
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "{\n  \"uye_adi\": \"Fidan Özgür\",\n  \"uye_no\": \"UY-33820\",\n  \"baslangic\": \"2026-10-12\",\n  \"aidat\": 750,\n  \"telefon\": \"0532 614 88 02\"\n}",
+   "cached": true
+  },
+  {
+   "id": "cikartim/recete",
+   "category": "cikartim",
+   "score": 0.75,
+   "checks": [
+    {
+     "type": "json_fields",
+     "passed": false,
+     "fraction": 0.75,
+     "detail": {
+      "matched": [
+       "hasta",
+       "tarih",
+       "ilac_sayisi"
+      ],
+      "missed": [
+       "doktor"
+      ]
+     }
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 0.75,
+   "response": "{\n  \"doktor\": \"Dr. Aylin Koroglu\",\n  \"hasta\": \"Sukru Yalcin\",\n  \"tarih\": \"16.10.2026\",\n  \"ilac_sayisi\": 3\n}",
+   "cached": true
+  },
+  {
+   "id": "cikartim/rehber-kayit",
+   "category": "cikartim",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "json_fields",
+     "passed": true,
+     "fraction": 1.0,
+     "detail": {
+      "matched": [
+       "ad_soyad",
+       "telefon",
+       "sehir",
+       "meslek"
+      ],
+      "missed": []
+     }
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "{\n  \"ad_soyad\": \"serap ulusoy\",\n  \"telefon\": \"0532 671 44 90\",\n  \"sehir\": \"IZMIR\",\n  \"meslek\": \"mimar\"\n}",
+   "cached": true
+  },
+  {
+   "id": "cikartim/siparis-formu",
+   "category": "cikartim",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "json_fields",
+     "passed": true,
+     "fraction": 1.0,
+     "detail": {
+      "matched": [
+       "musteri",
+       "siparis_no",
+       "odeme_turu",
+       "tutar"
+      ],
+      "missed": []
+     }
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "{\n  \"musteri\": \"Gorkem Saglam\",\n  \"siparis_no\": \"SP-99120\",\n  \"odeme_turu\": \"HAVALE/EFT\",\n  \"tutar\": \"1.349,80 TL\"\n}",
+   "cached": true
+  },
+  {
+   "id": "cikartim/trafik-tutanak",
+   "category": "cikartim",
+   "score": 0.8571,
+   "checks": [
+    {
+     "type": "json_fields",
+     "passed": false,
+     "fraction": 0.8571,
+     "detail": {
+      "matched": [
+       "tutanak_no",
+       "kaza_tarihi",
+       "plaka_a",
+       "plaka_b",
+       "surucu_a",
+       "surucu_b"
+      ],
+      "missed": [
+       "kusurlu_taraf"
+      ]
+     }
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 0.8571,
+   "response": "{\n  \"tutanak_no\": \"KB-2026/3301\",\n  \"kaza_tarihi\": \"14.10.2026\",\n  \"plaka_a\": \"06 ABC 341\",\n  \"plaka_b\": \"34 TRC 908\",\n  \"surucu_a\": \"Okan Saglam\",\n  \"surucu_b\": \"Pinar Erbas\",\n  \"kusurlu_taraf\": \"A aracı sürücüsü (Okan Saglam)\"\n}",
+   "cached": true
+  },
+  {
+   "id": "cikartim/tutanak",
+   "category": "cikartim",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "json_fields",
+     "passed": true,
+     "fraction": 0.6,
+     "detail": {
+      "matched": [
+       "tutanak_no",
+       "tarih",
+       "adres"
+      ],
+      "missed": [
+       "kisiler",
+       "hasar_ozeti"
+      ]
+     }
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "{\n  \"tutanak_no\": \"2026-1147\",\n  \"tarih\": \"15.10.2026 / 09:40\",\n  \"adres\": \"Camikebir Mah. Sahil Sk. No:9 D:3 Mudanya/BURSA\",\n  \"kisiler\": \"Ev sahibi Nurten Şen, yönetici İsmail Korkmaz, eksper Levent Aksoy\",\n  \"hasar_ozeti\": \"Binanın 4. kat dairesindeki mutfak tavanında su sızıntısı tespit edilmiştir. Sızıntının 5. kattaki daire banyosundan kaynaklandığı düşünülmektedir. Alçıpan tavanda 60x80 cm'lik alanda kabarma ve renk değişimi gözlemlenmiştir. Üst kat tesisatının kontrol edilmesine karar verilmiştir.\"\n}",
+   "cached": true
+  },
+  {
+   "id": "eposta/fiyat-teklifi",
+   "category": "eposta",
+   "score": 0.8,
+   "checks": [
+    {
+     "type": "starts_with",
+     "passed": true
+    },
+    {
+     "type": "contains",
+     "passed": true
+    },
+    {
+     "type": "turkish_share",
+     "passed": true,
+     "fraction": 0.6538,
+     "detail": {
+      "share": 0.654,
+      "min": 0.5,
+      "tokens": 52
+     }
+    },
+    {
+     "type": "count",
+     "passed": false,
+     "detail": {
+      "unit": "sentences",
+      "measured": 2,
+      "min": 3,
+      "max": null,
+      "eq": null
+     }
+    },
+    {
+     "type": "spelling_rules",
+     "passed": true,
+     "fraction": 1.0
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 0.8,
+   "response": "Konu: Fiyat Teklifi İsteği – 12 Çalışma Masası ve 12 Ergonomik Sandalye\n\nSayın Defne Hanım,\n\nOrka Ofis olarak ofisimiz için aşağıdaki mobilya gereksinimimizin fiyat teklifini rica ediyoruz:\n\n- 12 adet çalışma masası\n- 12 adet ergonomik sandalye\n\nÜrünlerin fiyatları, teslimat süresi, garanti koşulları ve ödeme şartlarını içeren teklifinizi en kısa sürede göndermenizi rica ederim.\n\nSaygılarımla,\n\n[Adınız]\n[Pozisyonunuz]\nOrka Ofis",
+   "cached": true
+  },
+  {
+   "id": "eposta/hata-bildirimi",
+   "category": "eposta",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "starts_with",
+     "passed": true
+    },
+    {
+     "type": "contains",
+     "passed": true
+    },
+    {
+     "type": "contains",
+     "passed": true
+    },
+    {
+     "type": "turkish_share",
+     "passed": true,
+     "fraction": 0.6038,
+     "detail": {
+      "share": 0.604,
+      "min": 0.5,
+      "tokens": 53
+     }
+    },
+    {
+     "type": "count",
+     "passed": true,
+     "detail": {
+      "unit": "sentences",
+      "measured": 4,
+      "min": 3,
+      "max": null,
+      "eq": null
+     }
+    },
+    {
+     "type": "spelling_rules",
+     "passed": true,
+     "fraction": 1.0
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "Konu: TeknoApp Şifre Sıfırlama Bağlantısı Hatası (E-417)\n\nTeknoApp Destek Ekibi'ne,\n\nTeknoApp uygulamasında şifre sıfırlama bağlantısı çalışmaması nedeniyle hesaba giriş yapamıyorum. Şifre sıfırlama talebinde bulunduğumda gelen bağlantıya tıkladığımda \"E-417\" hata kodunu alıyorum ve işlem tamamlanmıyor.\n\nLütfen bu konuda yardımcı olabilir misiniz?\n\nİlgili detaylar:\n- Uygulama: TeknoApp\n- Sorun: Şifre sıfırlama bağlantısı çalışmıyor\n- Hata kodu: E-417\n\nSaygılarımla,",
+   "cached": true
+  },
+  {
+   "id": "eposta/is-basvurusu",
+   "category": "eposta",
+   "score": 0.8846,
+   "checks": [
+    {
+     "type": "starts_with",
+     "passed": true
+    },
+    {
+     "type": "contains",
+     "passed": true
+    },
+    {
+     "type": "contains",
+     "passed": true
+    },
+    {
+     "type": "turkish_share",
+     "passed": false,
+     "fraction": 0.4231,
+     "detail": {
+      "share": 0.423,
+      "min": 0.45,
+      "tokens": 26
+     }
+    },
+    {
+     "type": "spelling_rules",
+     "passed": true,
+     "fraction": 1.0
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 0.8846,
+   "response": "Konu: Backend Geliştirici Pozisyonu İçin Başvuru - Deniz Aksoy\n\nSayın Atlas Bilişim İkili Kaynaklar Ekibi,\n\nBackend Geliştirici pozisyonunuz için başvuruda bulunmak istiyorum. CV'm ektedir.\n\nSaygılarımla,\n\nDeniz Aksoy",
+   "cached": true
+  },
+  {
+   "id": "eposta/kargo-sikayet",
+   "category": "eposta",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "starts_with",
+     "passed": true
+    },
+    {
+     "type": "contains",
+     "passed": true
+    },
+    {
+     "type": "turkish_share",
+     "passed": true,
+     "fraction": 0.6471,
+     "detail": {
+      "share": 0.647,
+      "min": 0.5,
+      "tokens": 51
+     }
+    },
+    {
+     "type": "count",
+     "passed": true,
+     "detail": {
+      "unit": "sentences",
+      "measured": 4,
+      "min": 3,
+      "max": null,
+      "eq": null
+     }
+    },
+    {
+     "type": "spelling_rules",
+     "passed": true,
+     "fraction": 1.0
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "Konu: Hasarlı Ürün Şikayeti - Sipariş No: SPX-44781\n\nSayın Nova Market Müşteri Hizmetleri,\n\nOnline aldığım ürünün kargoda hasar gördüğünü bildirmek üzere yazıyorum.\n\nSipariş Numarası: SPX-44781\nFirma: Nova Market\nSorun: Kargoda hasar görmüş ürün teslimatı\n\nLütfen hasalı ürünün değişimini ya da iadesini ve ilgili kargo talebini başlatın. Hasalı ürünün fotoğraflarını size iletebilirim.\n\nSaygılarımla,",
+   "cached": true
+  },
+  {
+   "id": "eposta/odev-ek-sure",
+   "category": "eposta",
+   "score": 0.9583,
+   "checks": [
+    {
+     "type": "starts_with",
+     "passed": true
+    },
+    {
+     "type": "contains",
+     "passed": true
+    },
+    {
+     "type": "regex",
+     "passed": true
+    },
+    {
+     "type": "turkish_share",
+     "passed": true,
+     "fraction": 0.5714,
+     "detail": {
+      "share": 0.571,
+      "min": 0.5,
+      "tokens": 56
+     }
+    },
+    {
+     "type": "count",
+     "passed": true,
+     "detail": {
+      "unit": "sentences",
+      "measured": 7,
+      "min": 3,
+      "max": null,
+      "eq": null
+     }
+    },
+    {
+     "type": "spelling_rules",
+     "passed": false,
+     "fraction": 0.75,
+     "detail": {
+      "violations": [
+       "question particle attached: 'genişletebilirmisiniz'"
+      ],
+      "count": 1
+     }
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 0.9583,
+   "response": "Konu: İstatistik Dersi Ödevi İçin Ek Süre Talibi\n\nSayın Dr. Elif Kaya,\n\nİstatistik dersinin ödevini teslim tarihine kadar tamamlayamayacağımı söylemek isterim. Teslim tarihi yaklaşırken ortaya çıkan bir sebep nedeniyle size ek süre talep etmek zorunda kaldım.\n\nMümkünse teslim tarihini biraz genişletebilirmisiniz? Ödevimi [yeni tarih] gününe kadar teslim etmeyi taahhüt ediyorum.\n\nAnlayışınız için teşekkür ederim.\n\nSaygılarımla,\n[Adınız]",
+   "cached": true
+  },
+  {
+   "id": "eposta/tesekkur",
+   "category": "eposta",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "starts_with",
+     "passed": true
+    },
+    {
+     "type": "contains",
+     "passed": true
+    },
+    {
+     "type": "turkish_share",
+     "passed": true,
+     "fraction": 0.75,
+     "detail": {
+      "share": 0.75,
+      "min": 0.5,
+      "tokens": 36
+     }
+    },
+    {
+     "type": "count",
+     "passed": true,
+     "detail": {
+      "unit": "sentences",
+      "measured": 5,
+      "min": 2,
+      "max": null,
+      "eq": null
+     }
+    },
+    {
+     "type": "spelling_rules",
+     "passed": true,
+     "fraction": 1.0
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "Konu: Dünkü ürün demosu için teşekkürler\n\nSayın Mehmet Bey,\n\nDünkü ürün demosu için teşekkür ederim. Zaman ayırdığınızı ve gösterdiğiniz ilgiyi takdir ediyoruz.\n\nGeri bildirimlerinizi ve sorularınızı bekliyorum. Ek bilgi ihtiyacınız olursa lütfen benimle iletişime geçebilirsiniz.\n\nSaygılarımla,",
+   "cached": true
+  },
+  {
+   "id": "eposta/toplandi-erteleme",
+   "category": "eposta",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "starts_with",
+     "passed": true
+    },
+    {
+     "type": "contains",
+     "passed": true
+    },
+    {
+     "type": "regex",
+     "passed": true
+    },
+    {
+     "type": "turkish_share",
+     "passed": true,
+     "fraction": 0.7667,
+     "detail": {
+      "share": 0.767,
+      "min": 0.5,
+      "tokens": 30
+     }
+    },
+    {
+     "type": "spelling_rules",
+     "passed": true,
+     "fraction": 1.0
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "Konu: Yarınaki Toplantının Erteleilmesi\n\nSayın Dr. Selim Yurt,\n\nYarın planladığımız toplantıyı ertelemek zorunda kaldım. Yeni toplantı zamanı için gelecek hafta salı, saat 11:00 öneriyorum. Bu sizin için uygun oluyor mu?\n\nSaygılarımla,",
+   "cached": true
+  },
+  {
+   "id": "imla/bitisik",
+   "category": "imla",
+   "score": 0.0,
+   "checks": [
+    {
+     "type": "answer_in",
+     "passed": false,
+     "detail": {
+      "line": "bir şey",
+      "expected_one_of": [
+       "B",
+       "b",
+       "hiçbir"
+      ]
+     }
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 0.0,
+   "response": "bir şey",
+   "cached": true
+  },
+  {
+   "id": "imla/bitisik-secimi",
+   "category": "imla",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "answer_in",
+     "passed": true
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "bilmiyorum",
+   "cached": true
+  },
+  {
+   "id": "imla/de-da",
+   "category": "imla",
+   "score": 0.3333,
+   "checks": [
+    {
+     "type": "contains",
+     "passed": false,
+     "detail": {
+      "missing": [
+       "markete de"
+      ]
+     }
+    },
+    {
+     "type": "not_contains",
+     "passed": true
+    },
+    {
+     "type": "answer_line",
+     "passed": false,
+     "detail": {
+      "line": "Ben markete gittim ama arabada bekleyen biri vardı."
+     }
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 0.3333,
+   "response": "Ben markete gittim ama arabada bekleyen biri vardı.",
+   "cached": true
+  },
+  {
+   "id": "imla/de-da-uyum",
+   "category": "imla",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "written_form",
+     "passed": true,
+     "fraction": 1.0
+    },
+    {
+     "type": "spelling_rules",
+     "passed": true,
+     "fraction": 1.0
+    },
+    {
+     "type": "count",
+     "passed": true,
+     "detail": {
+      "unit": "lines",
+      "measured": 3,
+      "min": null,
+      "max": null,
+      "eq": 3
+     }
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "Kardeşim de geldi.\nBen de yoruldum.\nOkul da yakınmış.",
+   "cached": true
+  },
+  {
+   "id": "imla/ek-ayrimi",
+   "category": "imla",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "answer_in",
+     "passed": true
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "A",
+   "cached": true
+  },
+  {
+   "id": "imla/hersey-yalniz",
+   "category": "imla",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "written_form",
+     "passed": true,
+     "fraction": 1.0
+    },
+    {
+     "type": "answer_line",
+     "passed": true
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "Her şeyi tek başıma yapmak zorunda kaldım, yalnız başına çalışmak yorucu.",
+   "cached": true
+  },
+  {
+   "id": "imla/ki",
+   "category": "imla",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "answer_in",
+     "passed": true
+    }
+   ],
+   "latency_ms": 36446,
+   "det_score": 1.0,
+   "response": "A"
+  },
+  {
+   "id": "imla/kisaltma-nokta",
+   "category": "imla",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "answer_in",
+     "passed": true
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "B",
+   "cached": true
+  },
+  {
+   "id": "imla/mi-mi",
+   "category": "imla",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "answer_in",
+     "passed": true
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "mü",
+   "cached": true
+  },
+  {
+   "id": "imla/mi-soru-cumleleri",
+   "category": "imla",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "written_form",
+     "passed": true,
+     "fraction": 1.0
+    },
+    {
+     "type": "spelling_rules",
+     "passed": true,
+     "fraction": 1.0
+    },
+    {
+     "type": "count",
+     "passed": true,
+     "detail": {
+      "unit": "lines",
+      "measured": 3,
+      "min": null,
+      "max": null,
+      "eq": 3
+     }
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "Yarındaki sınava geliyor musun?\nBabın evde mi?\nToplantıya katıldın mı?",
+   "cached": true
+  },
+  {
+   "id": "imla/serbest-duzelt",
+   "category": "imla",
+   "score": 0.7833,
+   "checks": [
+    {
+     "type": "written_form",
+     "passed": false,
+     "fraction": 0.6,
+     "detail": {
+      "missing": [
+       "dünkü"
+      ],
+      "bad_found": [
+       "dün ki"
+      ]
+     }
+    },
+    {
+     "type": "spelling_rules",
+     "passed": false,
+     "fraction": 0.75,
+     "detail": {
+      "violations": [
+       "'ki' should attach: 'Dün ki' -> 'Dünki'"
+      ],
+      "count": 1
+     }
+    },
+    {
+     "type": "turkish_share",
+     "passed": true,
+     "fraction": 0.7895,
+     "detail": {
+      "share": 0.789,
+      "min": 0.5,
+      "tokens": 19
+     }
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 0.7833,
+   "response": "Yalnız kaldığım için her şeyi tek başıma yapmak zorunda kaldım. Dün ki toplantıya geldim mi kimse bendeki anahtarı sormadı.",
+   "cached": true
+  },
+  {
+   "id": "ozet/haber",
+   "category": "ozet",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "count",
+     "passed": true,
+     "detail": {
+      "unit": "sentences",
+      "measured": 1,
+      "min": null,
+      "max": null,
+      "eq": 1
+     }
+    },
+    {
+     "type": "contains",
+     "passed": true
+    },
+    {
+     "type": "count",
+     "passed": true,
+     "detail": {
+      "unit": "words",
+      "measured": 36,
+      "min": 8,
+      "max": null,
+      "eq": null
+     }
+    },
+    {
+     "type": "turkish_share",
+     "passed": true,
+     "fraction": 0.6857,
+     "detail": {
+      "share": 0.686,
+      "min": 0.6,
+      "tokens": 35
+     }
+    },
+    {
+     "type": "spelling_rules",
+     "passed": true,
+     "fraction": 1.0
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "Ege Üniversitesi'nin İzmir Körfezi'nde üç yıl süren çalışması sonucunda kirlilik oranının yüzde 18 azaldığı tespit edildi; bu azalma arıtma tesisi yatırımları ve sanayi denetimleriyle ilişkilendirildi, sonuçlar Çevre Bakanlığı'na paylaşıldı ve önümüzdeki yıl aynı ölçümler Akdeniz'de tekrarlanacak.",
+   "cached": true
+  },
+  {
+   "id": "ozet/iade-politikasi",
+   "category": "ozet",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "count",
+     "passed": true,
+     "detail": {
+      "unit": "sentences",
+      "measured": 2,
+      "min": null,
+      "max": 2,
+      "eq": null
+     }
+    },
+    {
+     "type": "contains",
+     "passed": true
+    },
+    {
+     "type": "turkish_share",
+     "passed": true,
+     "fraction": 0.7442,
+     "detail": {
+      "share": 0.744,
+      "min": 0.6,
+      "tokens": 43
+     }
+    },
+    {
+     "type": "spelling_rules",
+     "passed": true,
+     "fraction": 1.0
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "Satın alınan ürünler fatura tarihinden 14 gün içinde (elektronik ürünler 7 gün), kullanılmamış ve ambalajı bozulmamış koşuluyla iade edilebilir; kargo ücreti müşteriye aittir ve hediye çeki alınan ürünlerde yalnızca değişim yapılır. İade tutarı ürün depoya ulaştıktan 7 iş günü içinde müşterinin ödeme yaptığı karta iade edilir.",
+   "cached": true
+  },
+  {
+   "id": "ozet/makale-oz",
+   "category": "ozet",
+   "score": 0.8929,
+   "checks": [
+    {
+     "type": "count",
+     "passed": true,
+     "detail": {
+      "unit": "sentences",
+      "measured": 1,
+      "min": null,
+      "max": null,
+      "eq": 1
+     }
+    },
+    {
+     "type": "count",
+     "passed": true,
+     "detail": {
+      "unit": "words",
+      "measured": 18,
+      "min": null,
+      "max": 30,
+      "eq": null
+     }
+    },
+    {
+     "type": "turkish_share",
+     "passed": false,
+     "fraction": 0.5714,
+     "detail": {
+      "share": 0.571,
+      "min": 0.6,
+      "tokens": 14
+     }
+    },
+    {
+     "type": "spelling_rules",
+     "passed": true,
+     "fraction": 1.0
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 0.8929,
+   "response": "480 üniversite öğrencisi günde 4,2 saat telefon, bunun %62'sini sosyal medyada harcar; bildirim kısıtlama odaklanmayı %23 artırır.",
+   "cached": true
+  },
+  {
+   "id": "ozet/site-tutanagi",
+   "category": "ozet",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "count",
+     "passed": true,
+     "detail": {
+      "unit": "words",
+      "measured": 34,
+      "min": null,
+      "max": 40,
+      "eq": null
+     }
+    },
+    {
+     "type": "turkish_share",
+     "passed": true,
+     "fraction": 0.625,
+     "detail": {
+      "share": 0.625,
+      "min": 0.6,
+      "tokens": 32
+     }
+    },
+    {
+     "type": "spelling_rules",
+     "passed": true,
+     "fraction": 1.0
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "Apartman yönetimi 15 Ekim 2026'de toplandı. Asansör bakım sözleşmesi mevcut firma ile yenilenmeyecek; üç firmadan teklif alınacak ve Kasım sonuna kadar seçilecek. Bahçe aydınlatması LED'e geçecek. Aidat artışı ertelendi. Toplantı 21:30'da sona erdi.",
+   "cached": true
+  },
+  {
+   "id": "ozet/toplanti-tutanagi",
+   "category": "ozet",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "count",
+     "passed": true,
+     "detail": {
+      "unit": "lines",
+      "measured": 3,
+      "min": null,
+      "max": null,
+      "eq": 3
+     }
+    },
+    {
+     "type": "only_lines_with_prefix",
+     "passed": true
+    },
+    {
+     "type": "turkish_share",
+     "passed": true,
+     "fraction": 0.697,
+     "detail": {
+      "share": 0.697,
+      "min": 0.5,
+      "tokens": 33
+     }
+    },
+    {
+     "type": "spelling_rules",
+     "passed": true,
+     "fraction": 1.0
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "- Yeni web sitesi tasarımı konuşuldu; Deniz hanım taslakları cuma günü paylaşacak.\n- Bütçe revizyonu için finans ekibiyle görüşülecek ve yayın tarihi kasım ortası olarak belirlendi.\n- Eski sitenin içerikleri arşivlenecek ve erişilebilirlik denetimi ayrıca yapılacak.",
+   "cached": true
+  },
+  {
+   "id": "ozet/veli-duyurusu",
+   "category": "ozet",
+   "score": 0.8816,
+   "checks": [
+    {
+     "type": "count",
+     "passed": true,
+     "detail": {
+      "unit": "words",
+      "measured": 24,
+      "min": null,
+      "max": 25,
+      "eq": null
+     }
+    },
+    {
+     "type": "contains",
+     "passed": true
+    },
+    {
+     "type": "turkish_share",
+     "passed": false,
+     "fraction": 0.5263,
+     "detail": {
+      "share": 0.526,
+      "min": 0.6,
+      "tokens": 19
+     }
+    },
+    {
+     "type": "spelling_rules",
+     "passed": true,
+     "fraction": 1.0
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 0.8816,
+   "response": "24 Ekim Cuma 10:00-15:00 bilim şenliği, tüm veliler davetli. Öğrenci projeleri spor salonunda. Öğretmene bilgi vererek katılım, servis normal devam eder.",
+   "cached": true
+  },
+  {
+   "id": "ozet/yonetmelik",
+   "category": "ozet",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "count",
+     "passed": true,
+     "detail": {
+      "unit": "sentences",
+      "measured": 3,
+      "min": null,
+      "max": 3,
+      "eq": null
+     }
+    },
+    {
+     "type": "contains",
+     "passed": true
+    },
+    {
+     "type": "turkish_share",
+     "passed": true,
+     "fraction": 0.7358,
+     "detail": {
+      "share": 0.736,
+      "min": 0.6,
+      "tokens": 53
+     }
+    },
+    {
+     "type": "spelling_rules",
+     "passed": true,
+     "fraction": 1.0
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "Çalışanlar haftada en fazla iki gün uzaktan çalışabilir; uzaktan çalışma günleri önceki haftanın son iş günü mesai bitimine kadar yöneticiye bildirilmelidir. Ayda sekiz günden fazla uzaktan çalışma talebi insan kaynakları onayına tabidir ve uzaktan çalışılan günlerde çevrimiçi toplantılara katılım zorunludur. Şirket ekipmanı yalnızca şirket ağına bağlı kullanılabilir ve yönerge 1 Kasım 2026'da yürürlüğe girer.",
+   "cached": true
+  },
+  {
+   "id": "resmi-yazi/belediye-sikayet",
+   "category": "resmi-yazi",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "contains",
+     "passed": true
+    },
+    {
+     "type": "word_order",
+     "passed": true
+    },
+    {
+     "type": "turkish_share",
+     "passed": true,
+     "fraction": 0.6303,
+     "detail": {
+      "share": 0.63,
+      "min": 0.5,
+      "tokens": 119
+     }
+    },
+    {
+     "type": "count",
+     "passed": true,
+     "detail": {
+      "unit": "sentences",
+      "measured": 8,
+      "min": 2,
+      "max": null,
+      "eq": null
+     }
+    },
+    {
+     "type": "spelling_rules",
+     "passed": true,
+     "fraction": 1.0
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "Nilüfer Belediyesi\nNilüfer / Bursa\n\nDilekçi: Murat Demir\nAdres: Bahçelievler Mah. 12. Sokak No:5, Bursa\n\nKONU: Bahçelievler Mahallesi'nde bulunan çukur ve bozuk yolların derhal onarılması talep edilmesi\n\nSayın Nilüfer Belediye Başkanlığı;\n\nBahçelievler Mahallesi'nde ikamet eden ve yukarıda adresimi belirten Murat Demir olarak, mahallemizin çeşitli sokaklarında ve ana yol kesimlerinde oluşan derin çukurlar, asfalt yıkımları ve kalinmayan yollar nedeniyle ciddi olumsuzlukler yaşadığını beyan ederim.\n\nÖzellikle 12. Sokak ve civarındaki bozuk asfaltler ve açığa çıkan çukurlar, araç ve yolcu güvenliğini tehlikeye atacaktır. Yaşlı vatandaşlar, çocuklar ve bisiklet sürücüler için bu durum daha da ciddi riskler oluşturmakta olup, geçtiğimiz günlerde birden fazla kazaya neden olduğu da gözlemlenmiştir.\n\nYukarıda açıkladığım sorunların incelenmesi ve ilgili yolların derhal onarılması talep edilir.\n\nSaygılarla,\n\nTarih: 19 Ekim 2026\n\nİmza: ___________________\nMurat Demir",
+   "cached": true
+  },
+  {
+   "id": "resmi-yazi/dilekce-belge",
+   "category": "resmi-yazi",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "contains",
+     "passed": true
+    },
+    {
+     "type": "word_order",
+     "passed": true
+    },
+    {
+     "type": "regex",
+     "passed": true
+    },
+    {
+     "type": "turkish_share",
+     "passed": true,
+     "fraction": 0.6571,
+     "detail": {
+      "share": 0.657,
+      "min": 0.5,
+      "tokens": 35
+     }
+    },
+    {
+     "type": "spelling_rules",
+     "passed": true,
+     "fraction": 1.0
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "Nilüfer Üniversitesi Öğrenci İşleri Daire Başkanlığı'na\n\nBURSA, 18 Ekim 2026\n\nSayın Yetkili,\n\nKonu: Öğrenci Belgesi (Transkript) Talebi\n\nBen Nilüfer Üniversitesi öğrencisiyim. Öğrenci belgem (transkript) tarafıma verilmesini rica ederim.\n\nAd Soyad: Mehmet Aydın\nÖğrenci No: 20234015\n\nSaygılarımla,\n\nMehmet Aydın",
+   "cached": true
+  },
+  {
+   "id": "resmi-yazi/fatura-itiraz",
+   "category": "resmi-yazi",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "contains",
+     "passed": true
+    },
+    {
+     "type": "word_order",
+     "passed": true
+    },
+    {
+     "type": "not_contains",
+     "passed": true
+    },
+    {
+     "type": "turkish_share",
+     "passed": true,
+     "fraction": 0.7639,
+     "detail": {
+      "share": 0.764,
+      "min": 0.5,
+      "tokens": 72
+     }
+    },
+    {
+     "type": "spelling_rules",
+     "passed": true,
+     "fraction": 1.0
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "UEDAŞ Elektrik Dağıtım A.Ş.\nİlgili Müşteri Hizmetleri Birimine\n\nSayın,\n\nAşağıda bilgileri belirtilen aboneme ait Eylül 2026 dönemi elektrik faturasına itiraz etmek üzere bu dilekçeyi başvuruyorum.\n\nAd Soyad: Ayşe Yıldız\nAbone Numarası: 88210344\nFatura Dönemi: Eylül 2026\nFatura Tutarı: 1.240 TL\n\nItiraz Gerekçesi:\nBelirtilen dönemde evde bulunulmaması nedeniyle elektrik tüketimi gerçekleşememiştir. Bu nedenle fatura tutarının doğru olmadığını ve hatalı faturalandırıldığını savunuyorum.\n\nFaturanın incelenmesi, gerekli düzeltmenin yapılması ve geçerli tutarın bildirilmesini rica ederim.\n\nSaygılarımla,\n\nAyşe Yıldız\nTarih: 19.10.2026",
+   "cached": true
+  },
+  {
+   "id": "resmi-yazi/izin-dilekcesi",
+   "category": "resmi-yazi",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "contains",
+     "passed": true
+    },
+    {
+     "type": "regex",
+     "passed": true
+    },
+    {
+     "type": "word_order",
+     "passed": true
+    },
+    {
+     "type": "turkish_share",
+     "passed": true,
+     "fraction": 0.5806,
+     "detail": {
+      "share": 0.581,
+      "min": 0.5,
+      "tokens": 31
+     }
+    },
+    {
+     "type": "spelling_rules",
+     "passed": true,
+     "fraction": 1.0
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "Marmara Lisesi Müdürlüğüne\nSayın,\n\nBen Marmara Lisesi 10-B sınıf öğrencisi Elif Şahin. 20 Ekim 2026 Salı günü ailevi sebep nedeniyle bir gün izin istiyorum.\n\nSaygılarıyla,\n\nÖğrenci: Elif Şahin\nVeli: Zeynep Şahin\n\nTarih: 20 Ekim 2026",
+   "cached": true
+  },
+  {
+   "id": "resmi-yazi/kayip-bildirimi",
+   "category": "resmi-yazi",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "contains",
+     "passed": true
+    },
+    {
+     "type": "word_order",
+     "passed": true
+    },
+    {
+     "type": "count",
+     "passed": true,
+     "detail": {
+      "unit": "sentences",
+      "measured": 5,
+      "min": 3,
+      "max": null,
+      "eq": null
+     }
+    },
+    {
+     "type": "turkish_share",
+     "passed": true,
+     "fraction": 0.6471,
+     "detail": {
+      "share": 0.647,
+      "min": 0.5,
+      "tokens": 51
+     }
+    },
+    {
+     "type": "spelling_rules",
+     "passed": true,
+     "fraction": 1.0
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "Çamlıca Fen Lisesi\nMüdürlüğe\n\nKonu: Öğrenci Kimlik Kartı Kaybı ve Yeniden Düzenlenmesi İsteği\n\nSayın Müdür,\n\nBen Çamlıca Fen Lisesi öğrencisi Kemal Öz. Öğrenci numaram 1147'dir. 17 Ekim 2026 tarihinde okul servisinde öğrenci kimlik kartımı kaybettiğimi bildirmek isterim.\n\nYukarıda açıklanan nedenle öğrenci kimlik kartımın yeniden düzenlenmesini rica ederim.\n\nSaygılarımla,\n\n19 Ekim 2026\nKemal Öz\nÖğrenci No: 1147",
+   "cached": true
+  },
+  {
+   "id": "resmi-yazi/veli-toplantisi",
+   "category": "resmi-yazi",
+   "score": 0.6,
+   "checks": [
+    {
+     "type": "contains",
+     "passed": false,
+     "detail": {
+      "missing": [
+       "davet"
+      ]
+     }
+    },
+    {
+     "type": "regex",
+     "passed": false,
+     "detail": {
+      "pattern": "(veli|toplant).*(davet|rica|katılım)|davet",
+      "scope": "all"
+     }
+    },
+    {
+     "type": "word_order",
+     "passed": true
+    },
+    {
+     "type": "turkish_share",
+     "passed": true,
+     "fraction": 0.625,
+     "detail": {
+      "share": 0.625,
+      "min": 0.5,
+      "tokens": 56
+     }
+    },
+    {
+     "type": "spelling_rules",
+     "passed": true,
+     "fraction": 1.0
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 0.6,
+   "response": "Deniz Ortaokulu\nMüdürlük\n\nSayın Veliler,\n\nDeniz Ortaokulu olarak, sizi aşağıdaki tarih ve saatte toplantımızla bir araya getirmekten mutluluk duyarız.\n\nToplantı Tarihi: 26 Ekim 2026 Pazartesi\nSaat: 14:00\nYer: Okul Konferans Salonu\nGündem: Dönem Değerlendirmesi\n\nToplantımızda dönem sonu değerlendirmelerimizi ve öğrencilerimizin akademik ve sosyal gelişimlerini sizinle paylaşmakta, görüş ve önerilerinizi dinlemekten memnuniyet duyarız.\n\nKatkılarınızı bekleyerek saygıyla sunarız.\n\nMüdür\nDeniz Ortaokulu",
+   "cached": true
+  },
+  {
+   "id": "resmi-yazi/yoklama-tutanagi",
+   "category": "resmi-yazi",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "starts_with",
+     "passed": true
+    },
+    {
+     "type": "contains",
+     "passed": true
+    },
+    {
+     "type": "regex",
+     "passed": true
+    },
+    {
+     "type": "count",
+     "passed": true,
+     "detail": {
+      "unit": "lines",
+      "measured": 8,
+      "min": 4,
+      "max": null,
+      "eq": null
+     }
+    },
+    {
+     "type": "turkish_share",
+     "passed": true,
+     "fraction": 0.5714,
+     "detail": {
+      "share": 0.571,
+      "min": 0.5,
+      "tokens": 21
+     }
+    },
+    {
+     "type": "spelling_rules",
+     "passed": true,
+     "fraction": 1.0
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "TUTANAKTIR\n\n- Ders: Matematik\n- Öğretmen: Hatice Erden\n- Tarih: 19.10.2026\n- Devamsız öğrenciler:\n  - Yusuf Can (9-A)\n  - Merve Işık (9-A)\n- Tutanağı düzenleyen: sınıf başkanı Ömer Akın",
+   "cached": true
+  },
+  {
+   "id": "yonerge/bes-satir",
+   "category": "yonerge",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "only_lines_with_prefix",
+     "passed": true
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "malzeme: kırmızı mercimek\nmalzeme: soğan\nmalzeme: havuç\nmalzeme: patates\nmalzeme: un",
+   "cached": true
+  },
+  {
+   "id": "yonerge/iki-cumle",
+   "category": "yonerge",
+   "score": 0.7609,
+   "checks": [
+    {
+     "type": "count",
+     "passed": true,
+     "detail": {
+      "unit": "sentences",
+      "measured": 2,
+      "min": null,
+      "max": null,
+      "eq": 2
+     }
+    },
+    {
+     "type": "turkish_share",
+     "passed": false,
+     "fraction": 0.5217,
+     "detail": {
+      "share": 0.522,
+      "min": 0.6,
+      "tokens": 23
+     }
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 0.7609,
+   "response": "Şu anki Türkiye genel hava durumuna erişebilmiyorum, çünkü elimde gerçek zamanlı hava verisi yok. Güncel bilgi için yerel bir hava durumu kaynağına bakabilirsiniz.",
+   "cached": true
+  },
+  {
+   "id": "yonerge/kelime-sinirli-baslik",
+   "category": "yonerge",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "count",
+     "passed": true,
+     "detail": {
+      "unit": "words",
+      "measured": 3,
+      "min": null,
+      "max": 4,
+      "eq": null
+     }
+    },
+    {
+     "type": "count",
+     "passed": true,
+     "detail": {
+      "unit": "lines",
+      "measured": 1,
+      "min": null,
+      "max": null,
+      "eq": 1
+     }
+    },
+    {
+     "type": "not_contains",
+     "passed": true
+    },
+    {
+     "type": "turkish_share",
+     "passed": true,
+     "fraction": 1.0,
+     "detail": {
+      "share": 1.0,
+      "min": 0.5,
+      "tokens": 3
+     }
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "Yeni Çocuk Kitaplığı",
+   "cached": true
+  },
+  {
+   "id": "yonerge/konu-satiri",
+   "category": "yonerge",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "count",
+     "passed": true,
+     "detail": {
+      "unit": "words",
+      "measured": 4,
+      "min": null,
+      "max": 8,
+      "eq": null
+     }
+    },
+    {
+     "type": "count",
+     "passed": true,
+     "detail": {
+      "unit": "lines",
+      "measured": 1,
+      "min": null,
+      "max": null,
+      "eq": 1
+     }
+    },
+    {
+     "type": "not_contains",
+     "passed": true
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "Proje gecikmesi hakkında bilgilendirme",
+   "cached": true
+  },
+  {
+   "id": "yonerge/madde-madde",
+   "category": "yonerge",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "only_lines_with_prefix",
+     "passed": true
+    },
+    {
+     "type": "count",
+     "passed": true,
+     "detail": {
+      "unit": "lines",
+      "measured": 3,
+      "min": null,
+      "max": null,
+      "eq": 3
+     }
+    },
+    {
+     "type": "every_line_matches",
+     "passed": true
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "- Çamaşırları ayır\n- Makineye koy\n- Yıkamayı başlat",
+   "cached": true
+  },
+  {
+   "id": "yonerge/numarali-liste",
+   "category": "yonerge",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "every_line_matches",
+     "passed": true
+    },
+    {
+     "type": "count",
+     "passed": true,
+     "detail": {
+      "unit": "lines",
+      "measured": 4,
+      "min": null,
+      "max": null,
+      "eq": 4
+     }
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "1. Taze ekmek, peynir, zeytin, yumurta, bal ve reçel gibi malzemeleri hazırla.\n2. Yumurtayı kızartma tavasında pişir veya haşla.\n3. Malzemeleri tabak üzerinde düzenli bir şekilde yerleştir.\n4. Sıcak çay demleyip bardaklara dolu, kahvaltını servis et.",
+   "cached": true
+  },
+  {
+   "id": "yonerge/tek-kelime",
+   "category": "yonerge",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "answer_in",
+     "passed": true
+    },
+    {
+     "type": "count",
+     "passed": true,
+     "detail": {
+      "unit": "words",
+      "measured": 1,
+      "min": null,
+      "max": null,
+      "eq": 1
+     }
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "sessizce",
+   "cached": true
+  },
+  {
+   "id": "yonerge/tek-kelime-kategori",
+   "category": "yonerge",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "answer_in",
+     "passed": true
+    },
+    {
+     "type": "count",
+     "passed": true,
+     "detail": {
+      "unit": "words",
+      "measured": 1,
+      "min": null,
+      "max": null,
+      "eq": 1
+     }
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "isim",
+   "cached": true
+  },
+  {
+   "id": "yonerge/ters-alfabe",
+   "category": "yonerge",
+   "score": 1.0,
+   "checks": [
+    {
+     "type": "word_order",
+     "passed": true
+    },
+    {
+     "type": "count",
+     "passed": true,
+     "detail": {
+      "unit": "lines",
+      "measured": 3,
+      "min": null,
+      "max": null,
+      "eq": 3
+     }
+    }
+   ],
+   "latency_ms": 0,
+   "det_score": 1.0,
+   "response": "elma\nçilek\narmut",
+   "cached": true
+  }
+ ]
+}

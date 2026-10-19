@@ -47,4 +47,31 @@ karnesinde "en çok hangi kontrol türü düşüyor" tablosu en kötü önde
 olacak şekilde gösterilir.
 `--best` verilirse dosya sırası yerine en yüksek puanlı koşu taban olur.
 
+## Sonuçlar (Ekim 2026)
+
+Veri seti v1'in 73 görevinin tamamı (sha256 `d32efc57324a…`), 2026-10-19:
+sıfır örnekli (zero-shot), varsayılan sistem istemi, görev başına tek
+üretim, yalnızca deterministik kontroller (jüri yok).
+
+| Model | Genel | %95 GA | En iyi kategori | En zayıf kategori |
+|---|---:|---:|---|---|
+| GLM-5.3 (Z.ai) | **%94,8** | 91,5–97,6 | `akl-yurutme` %100 | `resmi-yazi` %80 |
+| Nemotron-3.5-Super-VL (NVIDIA) | %94,2 | 90,4–97,4 | `akl-yurutme` %100 | `imla` %83 |
+| DeepSeek-V4.1-Flash | %94,1 | 90,9–96,6 | `akl-yurutme` %100 | `resmi-yazi` %83 |
+| MiMo-V2.6-Flash (Xiaomi) | %90,4 | 85,2–94,3 | `akl-yurutme` %100 | `imla` %76 |
+| GLM-5.3-Flash (Z.ai) | %87,3 | 81,7–92,3 | `ceviri` %99 | `imla` %63 |
+| Ling-3.1-Flash (inclusionAI) | %85,4 | 78,1–91,8 | `akl-yurutme` %100 | `imla` %33 |
+
+İlk üç model güven aralıkları içinde örtüşüyor — fiilen berabere. Küçük
+ve hızlı modeller en çok `imla`da (de/da, ki, soru eki, bitişik yazım)
+düşüyor; `resmi-yazi` (dilekçe düzeni) en güçlü modellerde bile zayıf
+nokta. Tam karne: [`docs/results/2026-10/scorecard.md`](docs/results/2026-10/scorecard.md)
+ve yanıtların tamamıyla HTML: [`docs/results/2026-10/scorecard.html`](docs/results/2026-10/scorecard.html).
+
+## Lisans
+
+Kod MIT (`LICENSE`); veri seti (`dataset/` altı) CC-BY-4.0
+(`dataset/LICENSE.md`). Katkı için `CONTRIBUTING.md`: göndermeden önce
+yerelde `pytest` ve `karne validate` çalıştırın (barındırılan CI yok).
+
 Detaylar ve veri seti şeması için: [`README.md`](README.md)
