@@ -289,4 +289,6 @@ def test_html_report_escapes_model_output(dataset_dir, fake_openai, tmp_path):
                  "--cache", "off", "--html"]) == 0
     html = out_json.with_suffix(".html").read_text(encoding="utf-8")
     assert "<script>alert" not in html
-    assert "<script>" in html
+    import html as _html
+
+    assert _html.escape("<script>", quote=False) in html
