@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,13 +8,13 @@ version = "0.1.0"
 description = "Evaluation kit for Turkish-capable LLMs: deterministic checks + HTML scorecard"
 readme = "README.md"
 requires-python = ">=3.11"
-license = { text = "MIT" }
+license = "MIT AND CC-BY-4.0"
+license-files = ["LICENSE", "src/turkce_karne/dataset/LICENSE.md"]
 authors = [{ name = "ZoriaSoft" }]
 keywords = ["turkish", "llm", "evaluation", "benchmark", "scorecard"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
@@ -24,6 +24,10 @@ dependencies = [
     "jinja2>=3.1",
     "pyyaml>=6.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/ZoriaSoft/turkce-ai-karnesi"
+Issues = "https://github.com/ZoriaSoft/turkce-ai-karnesi/issues"
 
 [project.optional-dependencies]
 dev = [
@@ -39,6 +43,7 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 turkce_karne = [
+    "dataset/LICENSE.md",
     "dataset/v1/*.yaml",
     "templates/*.html.j2",
 ]

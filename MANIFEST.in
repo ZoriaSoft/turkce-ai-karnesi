@@ -1,0 +1,3 @@
+include CHANGELOG.md CONTRIBUTING.md SECURITY.md README.tr.md
+include tests/conftest.py
+recursive-include scripts *.py
