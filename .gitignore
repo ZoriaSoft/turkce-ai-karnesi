@@ -12,7 +12,6 @@ venv/
 htmlcov/
 /results/
 .karne-cache/
-MEMORY.md
 *.results.json
 .env
 .env.*

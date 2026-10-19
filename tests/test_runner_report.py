@@ -274,7 +274,7 @@ def test_repeat_scores_stay_sorted(dataset_dir, fake_openai):
     assert "@rep1" in html and "per task" in html
 
 
-# ---- round 6: seeded bootstrap CI + rep rollups ----------------------------
+# ---- seeded bootstrap CI + rep rollups ----------------------------
 
 
 def test_summary_ci95_present_and_deterministic(dataset_dir, fake_openai):
@@ -325,7 +325,7 @@ def test_html_scorecard_structure(dataset_dir, fake_openai):
     assert "<svg" not in html  # 1 run x 1 category -> chart skipped
 
 
-# ---- round 7: per-check-type stats ----------------------------------------
+# ---- per-check-type stats ----------------------------------------
 
 
 def test_summary_by_check_type(dataset_dir, fake_openai):

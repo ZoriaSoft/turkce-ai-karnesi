@@ -1,7 +1,7 @@
 # Decisions
 
 ## D1 — Deterministic checks before an LLM judge
-Round 1 ships only rule-based checks. They are reproducible, free, and
+Scoring starts from rule-based checks. They are reproducible, free, and
 explainable; a judge with a fixed rubric can layer on later without changing
 task format (`checks:` list is open).
 
@@ -81,7 +81,7 @@ so every rep is an independent sample. Compare pairs `id@repN`; the
 run summary lists tasks whose verdict flips across reps.
 
 ## D14 — `json_fields` `strict` means exact key-set
-The `strict` spec key existed in tasks since round 1 but was never read.
+The `strict` spec key existed in early task files but was never read.
 It now means: no response keys outside `expected` (nested-suffix alias
 matches don't count as extra — a wrapper object holding the right
 fields stays legal). Extras fail the check and land in `detail.extra`.

@@ -210,7 +210,7 @@ def test_compare_rep_only_in_one_run():
     assert rep["only_in_b"] == ["c/t@rep1"]
 
 
-# ---- round 6: paired bootstrap CI on the score delta -----------------------
+# ---- paired bootstrap CI on the score delta -----------------------
 
 
 def test_delta_ci95_deterministic():
@@ -239,7 +239,7 @@ def test_format_compare_prints_ci():
     assert "delta 95% CI" in text
 
 
-# ---- round 7: multi-run compare (baseline = first file) -------------------
+# ---- multi-run compare (baseline = first file) -------------------
 
 
 def test_compare_many_leaderboard_and_pairs():
