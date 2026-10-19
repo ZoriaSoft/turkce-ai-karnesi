@@ -408,7 +408,13 @@ def main(argv: list[str] | None = None) -> int:
         "report": cmd_report,
         "compare": cmd_compare,
     }[args.cmd]
-    return fn(args)
+    try:
+        return fn(args)
+    except BrokenPipeError:
+        # output piped into `head` etc.: exit quietly like other CLI tools
+        devnull = os.open(os.devnull, os.O_WRONLY)
+        os.dup2(devnull, sys.stdout.fileno())
+        return 0
 
 
 if __name__ == "__main__":

@@ -278,3 +278,15 @@ def test_list_missing_dataset_is_clean_error(tmp_path, capsys):
     rc = main(["list", "--dataset", str(tmp_path / "nowhere")])
     assert rc == 1
     assert "dataset invalid" in capsys.readouterr().err
+
+
+def test_html_report_escapes_model_output(dataset_dir, fake_openai, tmp_path):
+    state, base = fake_openai
+    state.default_content = '<script>alert("x")</script> 42'
+    out_json = tmp_path / "res.json"
+    assert main(["run", "--model", "m", "--base-url", base,
+                 "--dataset", str(dataset_dir), "--out", str(out_json),
+                 "--cache", "off", "--html"]) == 0
+    html = out_json.with_suffix(".html").read_text(encoding="utf-8")
+    assert "<script>alert" not in html
+    assert "<script>" in html
