@@ -236,6 +236,9 @@ contributions welcome under CC-BY-4.0 (see `CONTRIBUTING.md`).
 - The judge is a model too — it can be wrong or biased toward its own
   family's style. Deterministic checks stay the ground truth; the judge
   is a bounded 0–3 rubric, not free-form scoring.
+  The graded response is passed to the judge inside a per-response
+  fence and the judge is told to treat it as data, which blunts (but
+  cannot fully rule out) prompt injection by the model under test.
 - `json_fields` compares the expected fields; extra keys in the response
   are ignored unless the spec sets `strict: true` (then extras fail the
   check and are listed in `detail.extra`).
