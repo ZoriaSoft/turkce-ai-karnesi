@@ -13,15 +13,20 @@ from . import __version__
 from .checks import check_types
 from .dataset import categories, dataset_digest, load_dataset, resolve_dataset_dir
 from .errors import CheckSpecError, ClientError, DatasetError
-from .report import render_html, runs_from_files, write_html
+from .report import write_html
 from .runner import RunConfig, load_results, run_eval, save_results
 from .compare import compare_runs, format_compare
 
 
-def _env_or(default=None):
-    import os
-
-    return default
+def _env_float(name: str, default: float) -> float:
+    """Float from env var ``name``; ``default`` when unset or empty."""
+    raw = os.environ.get(name, "").strip()
+    if not raw:
+        return default
+    try:
+        return float(raw)
+    except ValueError:
+        raise SystemExit(f"karne: {name} must be a number, got {raw!r}")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -45,8 +50,7 @@ def build_parser() -> argparse.ArgumentParser:
     rp.add_argument("--base-url", help="OpenAI-compatible base URL "
                     "(or KARNE_BASE_URL)")
     rp.add_argument("--api-key", help="API key (or KARNE_API_KEY)")
-    rp.add_argument("--model", required=True,
-                    help="model name (or KARNE_MODEL)")
+    rp.add_argument("--model", help="model name (or KARNE_MODEL)")
     rp.add_argument("--dataset", help="dataset dir")
     rp.add_argument("--dataset-version", default="v1")
     rp.add_argument("--tasks", help="comma-separated task ids")
@@ -57,11 +61,13 @@ def build_parser() -> argparse.ArgumentParser:
                     help="repeat each task N times (each rep is a real "
                     "generation via a cache-key salt; reps measure "
                     "sampling stability — see n_rep_unstable)")
-    rp.add_argument("--temperature", type=float, default=0.0)
+    rp.add_argument("--temperature", type=float, default=None,
+                    help="sampling temperature (or KARNE_TEMPERATURE; default 0)")
     rp.add_argument("--max-tokens", type=int, default=2048)
     rp.add_argument("--concurrency", type=int, default=4)
     rp.add_argument("--rpm", type=float, help="requests per minute cap")
-    rp.add_argument("--timeout", type=float, default=60.0)
+    rp.add_argument("--timeout", type=float, default=None,
+                    help="request timeout in seconds (or KARNE_TIMEOUT; default 60)")
     rp.add_argument("--max-retries", type=int, default=4)
     rp.add_argument("--cache", default=".karne-cache",
                     help="cache dir (or 'off')")
@@ -121,7 +127,11 @@ def _split(s: str | None) -> list[str] | None:
 
 
 def cmd_list(args) -> int:
-    tasks = load_dataset(args.dataset, version=args.dataset_version)
+    try:
+        tasks = load_dataset(args.dataset, version=args.dataset_version)
+    except (DatasetError, CheckSpecError) as e:
+        print(f"dataset invalid: {e}", file=sys.stderr)
+        return 1
     cats = set(_split(args.categories) or [])
     rows = []
     for t in tasks:
@@ -153,8 +163,22 @@ def cmd_validate(args) -> int:
 
 
 def cmd_run(args) -> int:
+    model = args.model or os.environ.get("KARNE_MODEL", "").strip()
+    if not model:
+        print("run: --model is required (or set KARNE_MODEL)", file=sys.stderr)
+        return 2
+    temperature = (
+        args.temperature
+        if args.temperature is not None
+        else _env_float("KARNE_TEMPERATURE", 0.0)
+    )
+    timeout = (
+        args.timeout
+        if args.timeout is not None
+        else _env_float("KARNE_TIMEOUT", 60.0)
+    )
     cfg = RunConfig(
-        model=args.model,
+        model=model,
         base_url=args.base_url,
         api_key=args.api_key,
         dataset_path=args.dataset,
@@ -164,7 +188,7 @@ def cmd_run(args) -> int:
         sample=args.sample,
         seed=args.seed,
         repeat=args.repeat,
-        temperature=args.temperature,
+        temperature=temperature,
         max_tokens=args.max_tokens,
         system_prompt=args.system_prompt or RunConfig.__dataclass_fields__[
             "system_prompt"
@@ -172,7 +196,7 @@ def cmd_run(args) -> int:
         concurrency=max(1, args.concurrency),
         rpm=args.rpm,
         cache_dir=None if args.cache.lower() in ("off", "none") else args.cache,
-        timeout=args.timeout,
+        timeout=timeout,
         max_retries=args.max_retries,
         label=args.label,
         judge_model=args.judge_model or os.environ.get("KARNE_JUDGE_MODEL"),
@@ -194,7 +218,11 @@ def cmd_run(args) -> int:
     if args.dry_run:
         from .runner import select_tasks
 
-        tasks = load_dataset(cfg.dataset_path, version=cfg.version)
+        try:
+            tasks = load_dataset(cfg.dataset_path, version=cfg.version)
+        except (DatasetError, CheckSpecError) as e:
+            print(f"dataset invalid: {e}", file=sys.stderr)
+            return 2
         sel = select_tasks(tasks, cfg)
         print(f"model:    {cfg.model}")
         print(f"style:    {cfg.prompt_style}")
@@ -285,10 +313,39 @@ def cmd_run(args) -> int:
         hpath = Path(args.html) if args.html else out.with_suffix(".html")
         write_html(results, hpath)
         print(f"wrote:  {hpath}")
+    if s["n"] and s["errors"] >= s["n"]:
+        first = next(
+            (t.get("error") for t in results.get("tasks", []) if t.get("error")),
+            None,
+        )
+        print(
+            "run failed: every request errored"
+            + (f" (first error: {first})" if first else ""),
+            file=sys.stderr,
+        )
+        return 2
+    if s["errors"]:
+        print(f"warning: {s['errors']} task(s) errored; their score counts as 0",
+              file=sys.stderr)
     return 0
 
+def _load_or_fail(paths, cmd: str):
+    """Load results JSON files; print a one-line error instead of a traceback."""
+    try:
+        return [load_results(p) for p in paths]
+    except FileNotFoundError as e:
+        print(f"{cmd}: no such file: {e.filename}", file=sys.stderr)
+    except json.JSONDecodeError as e:
+        print(f"{cmd}: not a results JSON file: {e}", file=sys.stderr)
+    except OSError as e:
+        print(f"{cmd}: {e}", file=sys.stderr)
+    return None
+
+
 def cmd_report(args) -> int:
-    runs = runs_from_files(args.results)
+    runs = _load_or_fail(args.results, "report")
+    if runs is None:
+        return 2
     if args.format == "md":
         from .report import render_markdown
 
@@ -311,10 +368,16 @@ def cmd_compare(args) -> int:
     if len(args.files) == 1:
         print("compare: need at least 2 results files", file=sys.stderr)
         return 2
-    runs = [load_results(p) for p in args.files]
+    runs = _load_or_fail(args.files, "compare")
+    if runs is None:
+        return 2
     if args.best:
+        def _score(r: dict) -> float:
+            v = r.get("summary", {}).get("score")
+            return v if isinstance(v, (int, float)) else -1.0
+
         runs.sort(
-            key=lambda r: r.get("summary", {}).get("score") or -1.0,
+            key=_score,
             reverse=True,
         )
     if len(runs) == 2:

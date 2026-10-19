@@ -79,13 +79,9 @@ def test_run_then_report(dataset_dir, fake_openai, tmp_path, capsys):
     assert "Leaderboard" in out_html.read_text()
 
 
-def test_run_missing_model_fails():
-    try:
-        main(["run", "--dataset", "dataset"])
-    except SystemExit as e:
-        assert e.code != 0
-    else:  # pragma: no cover
-        raise AssertionError("expected argparse to exit")
+def test_run_missing_model_fails(monkeypatch):
+    monkeypatch.delenv("KARNE_MODEL", raising=False)
+    assert main(["run", "--dataset", "dataset"]) == 2
 
 
 def test_compare_cli(tmp_path, capsys):
@@ -227,3 +223,58 @@ def test_report_html_tolerates_sparse_json(tmp_path, capsys):
     rc = main(["report", str(res), "--out", str(out)])
     assert rc == 0
     assert "Leaderboard" in out.read_text()
+
+
+def test_run_model_from_env(dataset_dir, fake_openai, tmp_path, monkeypatch):
+    state, base = fake_openai
+    monkeypatch.setenv("KARNE_MODEL", "env-model")
+    monkeypatch.setenv("KARNE_TEMPERATURE", "0.3")
+    out_json = tmp_path / "res.json"
+    rc = main(["run", "--base-url", base, "--dataset", str(dataset_dir),
+               "--out", str(out_json), "--cache", "off"])
+    assert rc == 0
+    assert state.requests and all(r["model"] == "env-model" for r in state.requests)
+    assert all(r["temperature"] == 0.3 for r in state.requests)
+
+
+def test_run_without_model_is_usage_error(monkeypatch, capsys):
+    monkeypatch.delenv("KARNE_MODEL", raising=False)
+    rc = main(["run", "--dry-run"])
+    assert rc == 2
+    assert "KARNE_MODEL" in capsys.readouterr().err
+
+
+def test_bad_env_number_is_reported(monkeypatch):
+    import pytest
+
+    monkeypatch.setenv("KARNE_TIMEOUT", "soon")
+    with pytest.raises(SystemExit, match="KARNE_TIMEOUT"):
+        main(["run", "--model", "m", "--dry-run"])
+
+
+def test_run_all_errors_exits_nonzero(dataset_dir, fake_openai, tmp_path, capsys):
+    state, base = fake_openai
+    state.fail_next_n = 1000
+    state.fail_status = 401
+    rc = main(["run", "--model", "m", "--base-url", base,
+               "--dataset", str(dataset_dir), "--out", str(tmp_path / "r.json"),
+               "--cache", "off", "--max-retries", "0"])
+    assert rc == 2
+    err = capsys.readouterr().err
+    assert "every request errored" in err and "HTTP 401" in err
+
+
+def test_report_and_compare_missing_file(tmp_path, capsys):
+    missing = str(tmp_path / "nope.json")
+    assert main(["report", missing, "--format", "md"]) == 2
+    assert "no such file" in capsys.readouterr().err
+    bad = tmp_path / "bad.json"
+    bad.write_text("not json", encoding="utf-8")
+    assert main(["compare", str(bad), str(bad)]) == 2
+    assert "not a results JSON" in capsys.readouterr().err
+
+
+def test_list_missing_dataset_is_clean_error(tmp_path, capsys):
+    rc = main(["list", "--dataset", str(tmp_path / "nowhere")])
+    assert rc == 1
+    assert "dataset invalid" in capsys.readouterr().err
